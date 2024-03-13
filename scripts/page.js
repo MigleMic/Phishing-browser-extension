@@ -1,7 +1,9 @@
-chrome.tabs.query({ active : true, currentWindow : true}, function (tabs){
-    
-    var url = tabs[0].url;
+// displaying the URL of the current active tab
 
-    console.log(url);
+document.addEventListener("DOMContentLoaded", () => {
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const url = urlParams.get("url");
+
     document.getElementById("url-display").textContent = url;
 });
