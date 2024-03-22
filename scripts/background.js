@@ -50,15 +50,16 @@ let database = null;
 function create_database(){
     const request = indexedDB.open('PhishingDatabase');
     console.log("jhehe");
+
     request.onerror = function (event){
-        console.log('Problem opening database');
+        console.log('Problem opening database:', event.target.error);
     }
 
     request.onupgradeneeded = function (event) {
         database = event.target.result;
 
         //Table PhishingReason
-        let phishingReason = database.createObjectStore('PhishingReason', {keyPath: 'ID'});
+        const phishingReason = database.createObjectStore('PhishingReason', {keyPath: 'ID'});
 
         //The structure of PhishingReason
         phishingReason.createIndex('NameIndex', 'Name', {unique: true});
@@ -66,7 +67,7 @@ function create_database(){
         phishingReason.createIndex('MarkerIndex', 'Marker', {unique: true});
 
         //Table PhishingSample
-        let phishingSample = database.createObjectStore('PhishingSample', {keyPath: 'ID'});
+        const phishingSample = database.createObjectStore('PhishingSample', {keyPath: 'ID'});
 
         //The structure of PhishingSample
         phishingSample.createIndex('ReasonID', 'Reason_ID', {unique: false});
@@ -86,13 +87,14 @@ function create_database(){
         database = event.target.result;
         console.log('Database opened');
 
-        database.onerror = function (event){
-            console.log('Failed to open the database');
-        }
+        // insert_reason_data().then(() => {
+        //     insert_sample_data();
+        // });
+        checkAndInsertData(database);
 
-        insert_reason_data().then(() => {
-            insert_sample_data();
-        });
+        database.onerror = function (event){
+            console.log('Failed to open the database', event.target.error);
+        }
     }
 }
 
@@ -170,4 +172,66 @@ function insert_sample_data(){
             console.log('Phishing sample data inserted successfully');
         };
     });
+}
+
+function getData(){
+    // Open the database
+const request = indexedDB.open('PhishingDatabase');
+
+// Handle database opening success
+request.onsuccess = function(event) {
+    const db = event.target.result;
+
+    // Create a transaction to access the data
+    const transaction = db.transaction(['PhishingReason'], 'readonly');
+    const objectStore = transaction.objectStore('PhishingReason');
+
+    // Open a cursor to iterate over the data
+    const cursorRequest = objectStore.openCursor();
+
+    // Handle cursor success
+    cursorRequest.onsuccess = function(event) {
+        const cursor = event.target.result;
+
+        // If cursor is not null, iterate over the data and log it
+        if (cursor) {
+            console.log(cursor.value); // Log the data to the console
+            cursor.continue(); // Move to the next item
+        } else {
+            console.log('No more data'); // Log a message when there is no more data
+        }
+    };
+
+    // Handle errors
+    transaction.onerror = function(event) {
+        console.error('Transaction error:', event.target.error);
+    };
+};
+
+// Handle errors
+request.onerror = function(event) {
+    console.error('Database error:', event.target.error);
+};
+
+}
+
+function checkAndInsertData(database) {
+    const transaction = database.transaction(['PhishingReason', 'PhishingSample'], 'readonly');
+    const reasonStore = transaction.objectStore('PhishingReason');
+    const sampleStore = transaction.objectStore('PhishingSample');
+
+    const reasonRequest = reasonStore.getAll();
+    const sampleRequest = sampleStore.getAll();
+
+    transaction.oncomplete = function() {
+        // Check if both object stores are empty
+        if (reasonRequest.result.length === 0 && sampleRequest.result.length === 0) {
+            // Both object stores are empty, insert data
+            insert_reason_data().then(() => {
+                insert_sample_data();
+            });
+        } else {
+            console.log('Database already contains data, skipping insertion');
+        }
+    };
 }
