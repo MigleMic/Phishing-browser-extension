@@ -13,10 +13,17 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 10px;
 }
 
 .dangerousContent em{
     margin-left: 10px;
     color: red;
     font-style: normal;
+}
+
+#url-display {
+    color: black;
+    font-size: 30px;
+    text-align: center;
 }
