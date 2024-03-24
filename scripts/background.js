@@ -1,34 +1,86 @@
 //background service
-//checks if the URL changes
+//checks if the URL changes and looks for phishing signs
 
-let previousUrl = null;
+let previousUrl = '';
 
+// Checking if new tab URL is a new URL
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.url && tab.active) {
-        
-        var currentUrl = changeInfo.url;
-
+        const currentUrl = changeInfo.url;
         if (currentUrl !== previousUrl) {
-
-            previousUrl = currentUrl;
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-
-                const activeTab = tabs[0];
-                
-                //checking if URL is not extension's URL
-                if (!currentUrl.startsWith(chrome.runtime.getURL(""))) {
-
-                    //if full page
-                    // chrome.tabs.create({
-                    //     url: "popup.html?url=" + encodedURL
-                    // });
-                    openPanelWindow(activeTab.url);
-                }
-            });
+            checkUrl(currentUrl);
         }
     }
 });
 
+// Checking if there is a different URL when navigating to another page
+chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+    const currentUrl = details.url;
+    if (currentUrl !== previousUrl) {
+        checkUrl(currentUrl);
+    }
+});
+
+// Checking if URL is not of extension itself
+function checkUrl(url) {
+    if (!url.startsWith("chrome")) { 
+        if (url !== previousUrl) {
+            previousUrl = url;
+            checkPhishingSigns(url);
+            }
+
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                const activeTab = tabs[0];
+                
+                // Perform further actions as needed
+                if (!url.startsWith(chrome.runtime.getURL(""))) {
+                    openPanelWindow(url); // Open panel for non-extension URLs
+                }
+            });
+        }
+    }
+
+function checkPhishingSigns(url){
+    if(checkPlagiarisedLetter(url)){
+        console.log("Rasta plagijuota raidė");
+        //čia reiktų įdėti info į UI
+    }
+}
+
+function checkPlagiarisedLetter(url){
+    const plagiarisedLetters = [0, 1, 3];
+    const replacePlagiarisedLetter = {
+        '1': ['l', 'i'],
+        '0': ['o', 'O'],
+        '3': ['e', 'E']
+    };
+
+    for (const character of plagiarisedLetters){
+        if (url.includes(character)){
+            console.log("Plagijuota raidė");
+            for (const replaced of replacePlagiarisedLetter[character])
+            {
+                const modifiedUrl = url.replace(new RegExp(replaced, 'g'), character);
+                if(checkWebsiteExistence(modifiedUrl)){
+                    return true;
+                }
+            }
+        }
+    }
+}
+
+async function checkWebsiteExistence(url){
+    try{
+        const response = await fetch(url);
+        return response.ok;
+        }
+    catch (error){
+        console.error("Error checking existence", error.message || error.toString());
+        return false;
+    }
+}
+
+// Open a popup window of an extension
 function openPanelWindow(url){
     const encodedURL = encodeURIComponent(url);   
 
@@ -41,15 +93,16 @@ function openPanelWindow(url){
     });
 }
 
+// Install database on runtime 
 chrome.runtime.onInstalled.addListener(function(){
     create_database();
 });
 
 let database = null;
 
+// Database creation
 function create_database(){
     const request = indexedDB.open('PhishingDatabase');
-    console.log("jhehe");
 
     request.onerror = function (event){
         console.log('Problem opening database:', event.target.error);
@@ -98,6 +151,7 @@ function create_database(){
     }
 }
 
+// Populating PhishingReason table with data
 function insert_reason_data(){
     return new Promise((resolve, reject) => {
         const transactions = database.transaction(['PhishingReason'], 'readwrite');
@@ -112,7 +166,7 @@ function insert_reason_data(){
             {ID: 'At_Sign', Name: '@ simbolis', Description: 'Aptikas neįprastas simbolis URL, kuris naudojamas nukreipti į kitą svetainę, esančią po @ simbolio!', Marker: 'Neįprastas simbolis @'},
             {ID: 'Dot_Dash', Name: 'Neįprasti simboliai', Description: 'URL pasikartojantys simboliai "." bei "-" gali reikšti, jog tai apgvaikų svetainė!'},
             {ID: 'SSL_Certificate', Name: 'SSL sertifikatas', Description: 'Neaptikas saugumo sertifikatas, kuris užtikrina saugų duomenų perdavimą!'},
-            {ID: 'IP_Adress', Name: 'IP adresas', Description: 'URL esantis IP adresas gali reikšti potencialią duomenų ataką!', Marker: 'Padirba raidė'},
+            {ID: 'IP_Adress', Name: 'IP adresas', Description: 'URL esantis IP adresas gali reikšti potencialią duomenų ataką!', Marker: 'IP adresas'},
             {ID: 'Favicon', Name: 'Svetainės piktograma', Description: 'Oficialios svetainės turi savo piktogramas, jos neturėjimas gali reikšti duomenų viliojimo ataką!'},
             {ID: 'Website_Age', Name: 'Internetinės svetainės amžius', Description: 'Jaunesnė nei pusė metų internetinė svetainė gali reikšti potencialią duomenų viliojimo ataką!'},
             {ID: 'Suffix_Prefix', Name: 'Žodžių pridėjimas į URL', Description: 'Pridėtiniai žodžiai pakeičia URL, atkreipkite dėmesį į URL, ar jis neiškraipytas!'}
@@ -129,6 +183,7 @@ function insert_reason_data(){
     });
 }
 
+// Populating PhishingSample table with data
 function insert_sample_data(){
     return new Promise((resolve, reject) => {
         const transactions = database.transaction(['PhishingSample'], 'readwrite');
@@ -150,7 +205,7 @@ function insert_sample_data(){
             {ID: 'At2', Reason_ID:'At_Sign', URL: 'www.vu.lt@kitas.lt'},
             {ID: 'At3', Reason_ID:'At_Sign', URL: 'www.policija.lt@moketi-bauda.lt'},
             {ID: 'At4', Reason_ID:'At_Sign', URL: 'www.posti.lt@p0sti.lt'},
-            {ID: 'DD1', Reason_ID:'Dot_Dash', URL: 'www.post.lt/keisti-pristatymo-laika-busena'},
+            {ID: 'DD1', Reason_ID:'Dot_Dash', URL: 'www.posti.lt/keisti-pristatymo-laika-busena'},
             {ID: 'DD2', Reason_ID:'Dot_Dash', URL: 'www.amazon.com/account-history-transaction-make'},
             {ID: 'DD3', Reason_ID:'Dot_Dash', URL: 'www.vu.lt/informacija.studentams.bakalauras.dokumentai'},
             {ID: 'DD4', Reason_ID:'Dot_Dash', URL: 'www.delfi.lt/naujienos.pasaulyje.popup.html?=data.html'},    
@@ -174,47 +229,7 @@ function insert_sample_data(){
     });
 }
 
-function getData(){
-    // Open the database
-const request = indexedDB.open('PhishingDatabase');
-
-// Handle database opening success
-request.onsuccess = function(event) {
-    const db = event.target.result;
-
-    // Create a transaction to access the data
-    const transaction = db.transaction(['PhishingReason'], 'readonly');
-    const objectStore = transaction.objectStore('PhishingReason');
-
-    // Open a cursor to iterate over the data
-    const cursorRequest = objectStore.openCursor();
-
-    // Handle cursor success
-    cursorRequest.onsuccess = function(event) {
-        const cursor = event.target.result;
-
-        // If cursor is not null, iterate over the data and log it
-        if (cursor) {
-            console.log(cursor.value); // Log the data to the console
-            cursor.continue(); // Move to the next item
-        } else {
-            console.log('No more data'); // Log a message when there is no more data
-        }
-    };
-
-    // Handle errors
-    transaction.onerror = function(event) {
-        console.error('Transaction error:', event.target.error);
-    };
-};
-
-// Handle errors
-request.onerror = function(event) {
-    console.error('Database error:', event.target.error);
-};
-
-}
-
+// Checking if possible to insert the data to tables
 function checkAndInsertData(database) {
     const transaction = database.transaction(['PhishingReason', 'PhishingSample'], 'readonly');
     const reasonStore = transaction.objectStore('PhishingReason');
