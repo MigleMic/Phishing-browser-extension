@@ -34,51 +34,6 @@ function checkUrl(url) {
                 }
             });
         }
-    }
-
-// Checking for defined phishing signs
-function checkPhishingSigns(url){
-    if(checkPlagiarisedLetter(url)){
-        console.log("Rasta plagijuota raidė");
-            //čia reiktų įdėti info į UI
-    }
-}
-
-function checkPlagiarisedLetter(url){
-    const plagiarisedLetters = [0, 1, 3];
-    const replacePlagiarisedLetter = {
-        '1': ['l', 'i'],
-        '0': ['o', 'O'],
-        '3': ['e', 'E']
-    };
-
-    var newUrl = "";
-
-    for (const character of plagiarisedLetters){
-        if (url.includes(character)){
-            var index = url.indexOf(character);
-            console.log("Plagijuota raidė");
-
-            for (const replaced of replacePlagiarisedLetter[character])
-            {
-                const modifiedUrl = url.replace(new RegExp(replaced, 'g'), character);
-                if(checkWebsiteExistence(modifiedUrl)){
-                    //Čia reiktų įdėti marker
-                    newUrl = url.substring(0, index) + '<span class="dangerousSymbol">' + url.charAt(index) + '</span>' + url.substring(index + 1);
-                }
-            }
-        }
-    }
-}
-
-async function checkWebsiteExistence(url){
-    try{
-        const response = await fetch(url);
-        return response.ok;
-        }
-    catch (error){
-        console.error("Error checking existence", error.message || error.toString());
-    }
 }
 
 // Open a popup window of an extension
