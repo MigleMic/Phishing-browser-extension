@@ -16,9 +16,14 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 // Checking if there is a different URL when navigating to another page
 chrome.webNavigation.onBeforeNavigate.addListener((details) => {
     const currentUrl = details.url;
-    if (currentUrl !== previousUrl) {
-        checkUrl(currentUrl);
-    }
+    const tabId = details.tabId;
+    chrome.tabs.get(tabId, (tab) =>{
+        if (tab && tab.active){
+            if (currentUrl !== previousUrl) {
+                checkUrl(currentUrl);
+            }
+        }
+    });
 });
 
 // Checking if URL is not of extension itself
@@ -27,13 +32,13 @@ function checkUrl(url) {
         if (url !== previousUrl) {
             previousUrl = url;
         }
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                const activeTab = tabs[0];   
-                if (!url.startsWith(chrome.runtime.getURL(""))) {
-                    openPanelWindow(url); // Open panel for non-extension URLs
-                }
-            });
-        }
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const activeTab = tabs[0];   
+            if (!url.startsWith(chrome.runtime.getURL(""))) {
+                openPanelWindow(url); // Open panel for non-extension URLs
+            }
+        });
+    }
 }
 
 // Open a popup window of an extension

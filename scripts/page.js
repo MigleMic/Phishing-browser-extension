@@ -3,13 +3,13 @@ let messageSent = false;
 
 // Displaying the URL of the current active tab
 document.addEventListener("DOMContentLoaded", () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const url = urlParams.get('url');
+        const urlParams = new URLSearchParams(window.location.search);
+        const url = urlParams.get('url');
 
-    if(checkPhishingSigns(url))
-    {
-        document.getElementById('url-display').textContent = url;
-    }
+        if(checkPhishingSigns(url))
+        {
+            document.getElementById('url-display').textContent = url;
+        } 
 });
 
 // Checking for defined phishing signs
@@ -21,6 +21,10 @@ function checkPhishingSigns(url){
     }
     if(checkLongUrl(url)){
         console.log("Rastas ilgas URL");
+        return true;
+    }
+    if(checkUrlShorteners(url)){
+        console.log("Rastas URL trumpintojas");
         return true;
     }
     return false;
@@ -42,7 +46,7 @@ function checkPlagiarisedLetter(url){
                 const modifiedUrl = url.replace(new RegExp(replaced, 'g'), character);
                 if(checkWebsiteExistence(modifiedUrl)){
                     //Čia reiktų įdėti marker
-                    var newUrl = modifyUrl(url, index);
+                    var newUrl = modifyUrlSymbol(url, index);
                     document.getElementById('url-display').innerHTML = newUrl;
                 }
             }
@@ -61,8 +65,24 @@ function checkLongUrl(url){
     return false;
 }
 
+function checkUrlShorteners(url){
+    const urlShorteners = ['tinyurl.com', 'qrco.de', 'shorturl.at', 'bit.ly'];
+
+    for (const shortener of urlShorteners){
+        if(url.includes(shortener)){
+            var index = url.indexOf(shortener);
+            var newUrl = modifyUrlPart(url, index, shortener.length);
+            document.getElementById('url-display').innerHTML = newUrl;
+        }
+    }
+}
+
+function modifyUrlPart(url, index, length){
+    return url.substring(0, index) + '<span class="dangerousSymbol">' + url.substring(index, index + length) + '</span>' + url.substring(index + length + 1);
+}
+
 // Highlightening dangerous parts of URL
-function modifyUrl(url, index){
+function modifyUrlSymbol(url, index){
     return url.substring(0, index) + '<span class="dangerousSymbol">' + url.charAt(index) + '</span>' + url.substring(index + 1);
 }
 
