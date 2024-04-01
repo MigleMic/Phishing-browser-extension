@@ -13,7 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentUrl = url;
             if(checkPhishingSigns(currentUrl))
             {
-                document.getElementById('url-display').textContent = currentUrl;
+                //document.getElementById('url-display').textContent = currentUrl;
+                console.log('Checking');
             } 
         }
     });
@@ -21,24 +22,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Checking for defined phishing signs
 function checkPhishingSigns(url){
+    var phishing = false;
     //TBA add collapsibles and markers
-    console.log('CHECKING');
     if(checkPlagiarisedLetter(url)){
-        console.log('Rasta plagijuota raidė');
-            return true;
+        logMessage('Rasta plagijuota raidė');
+        phishing = true;
     }
     if(checkLongUrl(url)){
-        console.log('Rastas ilgas URL');
-        return true;
+        logMessage('Rastas ilgas URL');
+        phishing = true;
     }
     if(checkUrlShorteners(url)){
-        console.log('Rastas URL trumpintojas');
-        return true;
+        logMessage('Rastas URL trumpintojas');
+        phishing = true;
     }
     if(checkNativeTLD(url)){
-        console.log('Rastas ne šalies aukščiausio lygio domenas');
+        logMessage('Rastas ne šalies aukščiausio lygio domenas');
+        phishing = true;
     }
-    return false;
+    if(checkCheapTLD(url)){
+        logMessage('Rastas pigus aukščiausio lygio domenas');
+        phishing = true;
+    }
+    return phishing;
 }
 
 function checkPlagiarisedLetter(url){
@@ -49,23 +55,27 @@ function checkPlagiarisedLetter(url){
         '3': ['e', 'E']
     };
 
+    var foundValue = false;
+
     for (const character of plagiarisedLetters){
+        logMessage('simbolis' + character);
         if (url.includes(character)){
             var index = url.indexOf(character);
             for (const replaced of replacePlagiarisedLetter[character])
             {
-                const modifiedUrl = url.replace(new RegExp(replaced, 'g'), character);
+                logMessage('modify ' + replaced);
+                const modifiedUrl = url.substring(0, index) + replaced + url.substring(index + 1);
                 if(checkWebsiteExistence(modifiedUrl)){
                     //Čia reiktų įdėti marker
-                    console.log('URL su raide - ', url);
+                    logMessage('URL su raide - ' +  modifiedUrl);
                     var newUrl = modifyUrlSymbol(url, index);
                     document.getElementById('url-display').innerHTML = newUrl;
-                    return;
+                    foundValue = true;
                 }
             }
         }
     }
-    return false;
+    return foundValue;
 }
 
 function checkLongUrl(url){
@@ -81,16 +91,17 @@ function checkLongUrl(url){
 
 function checkUrlShorteners(url){
     const urlShorteners = ['tinyurl.com', 'qrco.de', 'shorturl.at', 'bit.ly'];
+    var foundValue = false;
 
     for (const shortener of urlShorteners){
         if(url.includes(shortener)){
             var index = url.indexOf(shortener);
             var newUrl = modifyUrlPart(url, index, shortener.length);
             document.getElementById('url-display').innerHTML = newUrl;
-            return;
+            foundValue = true;
         }
     }
-    return false;
+    return foundValue;
 }
 
 function checkNativeTLD(url){
@@ -105,7 +116,7 @@ function checkNativeTLD(url){
 
         if(oldTLD !== nativeTLD)
         {
-            console.log('URL su TLD - ', urlObject);
+            logMessage('URL su TLD - ' +  urlObject);
             // Assigning the native TLD, to see if a website like that exists
             splitHostname.push(nativeTLD);
             hostname = splitHostname.join('.');
@@ -122,6 +133,26 @@ function checkNativeTLD(url){
         }
     }
     return false;
+}
+
+function checkCheapTLD(url){
+    const cheapTLDs = ['xyz', 'info', 'cf', 'gq', 'ml', 'tk', 'ga'];
+    var foundValue = false;
+
+    const urlObject = new URL(url);
+    let hostname = urlObject.hostname;
+    const splitHostname = hostname.split('.');
+    const tld  = splitHostname.pop().toString();
+
+    for(const cheap of cheapTLDs){
+        if(tld === cheap){
+            var index = url.indexOf(cheap);
+            var newUrl = modifyUrlPart(url, index, tld.length);
+            document.getElementById('url-display').innerHTML = newUrl;
+            foundValue = true;
+        }
+    }
+    return foundValue;
 }
 
 function modifyUrlPart(url, index, length){
@@ -156,4 +187,11 @@ async function checkWebsiteExistence(url){
         return false;
     }
 
+}
+
+function logMessage(message){
+    const logContainer = document.getElementById('log-container');
+    const logMessage = document.createElement('div');
+    logMessage.textContent = message;
+    logContainer.appendChild(logMessage);
 }
