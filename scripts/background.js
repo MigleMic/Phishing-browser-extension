@@ -6,21 +6,21 @@ let previousUrl = '';
 // Checking if new tab URL is a new URL
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.url && tab.active) {
-        const currentUrl = changeInfo.url;
-        if (currentUrl !== previousUrl) {
-            checkUrl(currentUrl);
+        const url = changeInfo.url;
+        if (url !== previousUrl) {
+            checkUrl(url);
         }
     }
 });
 
 // Checking if there is a different URL when navigating to another page
 chrome.webNavigation.onBeforeNavigate.addListener((details) => {
-    const currentUrl = details.url;
+    const url = details.url;
     const tabId = details.tabId;
     chrome.tabs.get(tabId, (tab) =>{
         if (tab && tab.active){
-            if (currentUrl !== previousUrl) {
-                checkUrl(currentUrl);
+            if (url !== previousUrl) {
+                checkUrl(url);
             }
         }
     });
@@ -28,7 +28,7 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
 
 // Checking if URL is not of extension itself
 function checkUrl(url) {
-    if (!url.startsWith("chrome")) { 
+    if (!url.startsWith('chrome')) { 
         if (url !== previousUrl) {
             previousUrl = url;
         }
@@ -41,15 +41,31 @@ function checkUrl(url) {
     }
 }
 
+// Listen for messages from content script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log('GAVOME BACKGROUND.JS');
+    // Check if the message contains the URL
+    if (message.action === 'getURL') {
+        const url = message.url;
+        if(url){
+            console.log('URL ', url);
+            // Optionally, send a response back to the content script
+            sendResponse({ success: true, url: url });
+        }
+    }
+    // Make sure to return true to indicate that the response will be sent asynchronously
+    return true;
+});
+
 // Open a popup window of an extension
 function openPanelWindow(url){
     const encodedURL = encodeURIComponent(url);   
 
     //creates a panel html
     chrome.windows.create({
-        url: "popup.html?url=" + encodedURL,
-        type: "panel",
-        left: 250,
+        url: 'popup.html?url=' + encodedURL,
+        type: 'panel',
+        left: 300,
         top: 100
     });
 }
@@ -96,14 +112,22 @@ function create_database(){
         phishingSample.transaction.oncomplete = function (event){
             console.log('PhishingSample object store is created');
         }
+
+        const logger = database.createObjectStore('ExtensionLogger', {keyPath: 'ID'});
+        
+        logger.createIndex('TimestampIndex', 'Timestamp', {unique: false});
+        logger.createIndex('ErrorIndex', 'Error', {unique: false});
+        logger.createIndex('MessageIndex', 'Message', {unique: false});
+
+        logger.transaction.oncomplete = function (event){
+            console.log('Logger object store is created');
+        }
     }
+
     request.onsuccess = function (event){
         database = event.target.result;
         console.log('Database opened');
 
-        // insert_reason_data().then(() => {
-        //     insert_sample_data();
-        // });
         checkAndInsertData(database);
 
         database.onerror = function (event){
@@ -138,6 +162,7 @@ function insert_reason_data(){
             request.onerror = reject;
             request.onsuccess = resolve;
         });
+
         transactions.oncomplete = () =>{
             console.log('Phishing reason data inserted successfully');
         };
@@ -179,11 +204,13 @@ function insert_sample_data(){
             {ID: 'SP3', Reason_ID:'Suffix_Prefix', URL: 'www.lrmuitine-mokestis.lt'},
             {ID: 'SP4', Reason_ID:'Suffix_Prefix', URL: 'www.gmail-box.com'},
         ];
+
         sampleData.forEach(sample => {
             const request = sampleStore.add(sample);
             request.onerror = reject;
             request.onsuccess = resolve;
         });
+
         transactions.oncomplete = () =>{
             console.log('Phishing sample data inserted successfully');
         };
@@ -200,9 +227,7 @@ function checkAndInsertData(database) {
     const sampleRequest = sampleStore.getAll();
 
     transaction.oncomplete = function() {
-        // Check if both object stores are empty
         if (reasonRequest.result.length === 0 && sampleRequest.result.length === 0) {
-            // Both object stores are empty, insert data
             insert_reason_data().then(() => {
                 insert_sample_data();
             });

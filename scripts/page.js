@@ -1,31 +1,42 @@
 //Script file for modifying information, looking for phishing signs
-let messageSent = false;
 
 // Displaying the URL of the current active tab
-document.addEventListener("DOMContentLoaded", () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const url = urlParams.get('url');
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const url = urlParams.get('url');
 
-        if(checkPhishingSigns(url))
-        {
-            document.getElementById('url-display').textContent = url;
-        } 
+    console.log('SIUNCIAM');
+    // Send message to background script with the URL
+    chrome.runtime.sendMessage({ action: 'getURL', url: url }, (response) => {
+        console.log('GAVOM ATSAKA');
+        if(response.success){
+            const currentUrl = url;
+            if(checkPhishingSigns(currentUrl))
+            {
+                document.getElementById('url-display').textContent = currentUrl;
+            } 
+        }
+    });
 });
 
 // Checking for defined phishing signs
 function checkPhishingSigns(url){
-    //TBA add collapsibles
+    //TBA add collapsibles and markers
+    console.log('CHECKING');
     if(checkPlagiarisedLetter(url)){
-        console.log("Rasta plagijuota raidė");
+        console.log('Rasta plagijuota raidė');
             return true;
     }
     if(checkLongUrl(url)){
-        console.log("Rastas ilgas URL");
+        console.log('Rastas ilgas URL');
         return true;
     }
     if(checkUrlShorteners(url)){
-        console.log("Rastas URL trumpintojas");
+        console.log('Rastas URL trumpintojas');
         return true;
+    }
+    if(checkNativeTLD(url)){
+        console.log('Rastas ne šalies aukščiausio lygio domenas');
     }
     return false;
 }
@@ -46,12 +57,15 @@ function checkPlagiarisedLetter(url){
                 const modifiedUrl = url.replace(new RegExp(replaced, 'g'), character);
                 if(checkWebsiteExistence(modifiedUrl)){
                     //Čia reiktų įdėti marker
+                    console.log('URL su raide - ', url);
                     var newUrl = modifyUrlSymbol(url, index);
                     document.getElementById('url-display').innerHTML = newUrl;
+                    return;
                 }
             }
         }
     }
+    return false;
 }
 
 function checkLongUrl(url){
@@ -73,8 +87,41 @@ function checkUrlShorteners(url){
             var index = url.indexOf(shortener);
             var newUrl = modifyUrlPart(url, index, shortener.length);
             document.getElementById('url-display').innerHTML = newUrl;
+            return;
         }
     }
+    return false;
+}
+
+function checkNativeTLD(url){
+    let nativeTLD = 'lt';
+    
+    if(!checkUrlShorteners(url))
+    {
+        const urlObject = new URL(url);
+        let hostname = urlObject.hostname;
+        const splitHostname = hostname.split('.');
+        const oldTLD  = splitHostname.pop().toString();
+
+        if(oldTLD !== nativeTLD)
+        {
+            console.log('URL su TLD - ', urlObject);
+            // Assigning the native TLD, to see if a website like that exists
+            splitHostname.push(nativeTLD);
+            hostname = splitHostname.join('.');
+            urlObject.hostname = hostname;
+
+            var newUrl = urlObject.href;
+
+            if(checkWebsiteExistence(newUrl)){
+                var index = url.indexOf(oldTLD);
+                var modifiedUrl = modifyUrlPart(url, index, oldTLD.length);
+                document.getElementById('url-display').innerHTML = modifiedUrl;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 function modifyUrlPart(url, index, length){
@@ -88,11 +135,25 @@ function modifyUrlSymbol(url, index){
 
 // Helper function to check if given website exists
 async function checkWebsiteExistence(url){
-    try{
-        const response = await fetch(url);
-        return response.ok;
+    // try{
+    //     const response = await fetch(url);
+    //     return response.ok;
+    //     }
+    // catch (error){
+    //     console.error('Error checking existence', error.message || error.toString());
+    // }
+    try {
+        const response = await fetch(url, { method: 'HEAD' });
+        if (response.ok) {
+            console.log('URL exists:', url);
+            return true;
+        } else {
+            console.log('URL does not exist:', url);
+            return false;
         }
-    catch (error){
-        console.error("Error checking existence", error.message || error.toString());
+    } catch (error) {
+        console.error('Error checking URL: ', url);
+        return false;
     }
+
 }
