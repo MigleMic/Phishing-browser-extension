@@ -7,6 +7,7 @@ let previousUrl = '';
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.url && tab.active) {
         const url = changeInfo.url;
+
         if (url !== previousUrl) {
             checkUrl(url);
         }
@@ -17,6 +18,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 chrome.webNavigation.onBeforeNavigate.addListener((details) => {
     const url = details.url;
     const tabId = details.tabId;
+
     chrome.tabs.get(tabId, (tab) =>{
         if (tab && tab.active){
             if (url !== previousUrl) {
@@ -32,8 +34,10 @@ function checkUrl(url) {
         if (url !== previousUrl) {
             previousUrl = url;
         }
+
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const activeTab = tabs[0];   
+            const activeTab = tabs[0];  
+
             if (!url.startsWith(chrome.runtime.getURL(""))) {
                 openPanelWindow(url); // Open panel for non-extension URLs
             }
@@ -44,16 +48,15 @@ function checkUrl(url) {
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('GAVOME BACKGROUND.JS');
-    // Check if the message contains the URL
+
     if (message.action === 'getURL') {
         const url = message.url;
-        if(url){
+
+        if (url){
             console.log('URL ', url);
-            // Optionally, send a response back to the content script
             sendResponse({ success: true, url: url });
         }
     }
-    // Make sure to return true to indicate that the response will be sent asynchronously
     return true;
 });
 

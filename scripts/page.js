@@ -9,11 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Send message to background script with the URL
     chrome.runtime.sendMessage({ action: 'getURL', url: url }, (response) => {
         console.log('GAVOM ATSAKA');
-        if(response.success){
+
+        if (response.success){
             const currentUrl = url;
-            if(checkPhishingSigns(currentUrl))
+
+            if (checkPhishingSigns(currentUrl))
             {
-                //document.getElementById('url-display').textContent = currentUrl;
                 console.log('Checking');
             } 
         }
@@ -23,27 +24,38 @@ document.addEventListener('DOMContentLoaded', () => {
 // Checking for defined phishing signs
 function checkPhishingSigns(url){
     var phishing = false;
-    //TBA add collapsibles and markers
-    if(checkPlagiarisedLetter(url)){
+    logMessage('Dabartinis URL - ' +  url);
+    //TBA add collapsibles and markers inside of this
+    if (checkPlagiarisedLetter(url)){
         logMessage('Rasta plagijuota raidė');
         phishing = true;
     }
-    if(checkLongUrl(url)){
+
+    if (checkLongUrl(url)){
         logMessage('Rastas ilgas URL');
         phishing = true;
     }
-    if(checkUrlShorteners(url)){
+
+    if (checkUrlShorteners(url)){
         logMessage('Rastas URL trumpintojas');
         phishing = true;
     }
-    if(checkNativeTLD(url)){
+
+    if (checkNativeTLD(url)){
         logMessage('Rastas ne šalies aukščiausio lygio domenas');
         phishing = true;
     }
-    if(checkCheapTLD(url)){
+
+    if (checkCheapTLD(url)){
         logMessage('Rastas pigus aukščiausio lygio domenas');
         phishing = true;
     }
+
+    if (checkTLDNumber(url)){
+        logMessage('Rastas daugiau nei vienas TLD');
+        phishing = true;
+    }
+    
     return phishing;
 }
 
@@ -59,13 +71,16 @@ function checkPlagiarisedLetter(url){
 
     for (const character of plagiarisedLetters){
         logMessage('simbolis' + character);
+
         if (url.includes(character)){
             var index = url.indexOf(character);
+            
             for (const replaced of replacePlagiarisedLetter[character])
             {
                 logMessage('modify ' + replaced);
                 const modifiedUrl = url.substring(0, index) + replaced + url.substring(index + 1);
-                if(checkWebsiteExistence(modifiedUrl)){
+                
+                if (checkWebsiteExistence(modifiedUrl)){
                     //Čia reiktų įdėti marker
                     logMessage('URL su raide - ' +  modifiedUrl);
                     var newUrl = modifyUrlSymbol(url, index);
@@ -75,6 +90,7 @@ function checkPlagiarisedLetter(url){
             }
         }
     }
+
     return foundValue;
 }
 
@@ -83,9 +99,12 @@ function checkLongUrl(url){
     var regex = /(?:https?:\/\/)?(?:www\.)?/;
     
     var cleanedUrl = url.replace(regex, "");
-    if(cleanedUrl.length >= 54){
+    if (cleanedUrl.length >= longUrl){
+        document.getElementById('url-display').textContent = url;
+        
         return true;
     }
+
     return false;
 }
 
@@ -94,27 +113,28 @@ function checkUrlShorteners(url){
     var foundValue = false;
 
     for (const shortener of urlShorteners){
-        if(url.includes(shortener)){
+        if (url.includes(shortener)){
             var index = url.indexOf(shortener);
             var newUrl = modifyUrlPart(url, index, shortener.length);
+
             document.getElementById('url-display').innerHTML = newUrl;
             foundValue = true;
         }
     }
+
     return foundValue;
 }
 
 function checkNativeTLD(url){
     let nativeTLD = 'lt';
     
-    if(!checkUrlShorteners(url))
-    {
+    if (!checkUrlShorteners(url)){
         const urlObject = new URL(url);
         let hostname = urlObject.hostname;
         const splitHostname = hostname.split('.');
         const oldTLD  = splitHostname.pop().toString();
 
-        if(oldTLD !== nativeTLD)
+        if (oldTLD !== nativeTLD)
         {
             logMessage('URL su TLD - ' +  urlObject);
             // Assigning the native TLD, to see if a website like that exists
@@ -124,14 +144,17 @@ function checkNativeTLD(url){
 
             var newUrl = urlObject.href;
 
-            if(checkWebsiteExistence(newUrl)){
+            if (checkWebsiteExistence(newUrl)){
                 var index = url.indexOf(oldTLD);
                 var modifiedUrl = modifyUrlPart(url, index, oldTLD.length);
+                
                 document.getElementById('url-display').innerHTML = modifiedUrl;
+                
                 return true;
             }
         }
     }
+
     return false;
 }
 
@@ -140,23 +163,65 @@ function checkCheapTLD(url){
     var foundValue = false;
 
     const urlObject = new URL(url);
-    let hostname = urlObject.hostname;
+    const hostname = urlObject.hostname;
     const splitHostname = hostname.split('.');
     const tld  = splitHostname.pop().toString();
 
-    for(const cheap of cheapTLDs){
-        if(tld === cheap){
+    for (const cheap of cheapTLDs){
+        if (tld === cheap){
             var index = url.indexOf(cheap);
             var newUrl = modifyUrlPart(url, index, tld.length);
             document.getElementById('url-display').innerHTML = newUrl;
             foundValue = true;
         }
     }
+
+    return foundValue;
+}
+
+function checkTLDNumber(url){
+    var foundValue = false;
+
+    const urlObject = new URL(url);
+
+    const hostname = urlObject.hostname;
+    const splitHostname = hostname.split('.');
+    
+    // No TLD found
+    if(splitHostname.length <= 1){
+        return foundValue;
+    }
+
+    let numberOfTLDs = 0;
+    const tlds = [];
+    const tldRegex = /^[a-zA-Z0-9]+$/;
+    
+    for (let i = splitHostname.length - 1; i >= 1; i--){
+        if (splitHostname[i] !== '' && tldRegex.test(splitHostname[i])){
+            numberOfTLDs++;
+            tlds.push(splitHostname[i]);
+            // logMessage('TLD - ' + splitHostname[i]);
+        } else {
+            break;
+        }
+    }
+
+    if (numberOfTLDs > 1){
+        tlds.forEach(tld =>{
+            logMessage('TLD BUS - ' + tld);
+            const index = url.indexOf(tld);
+            logMessage('INDEX BUS - ' + index);
+            logMessage('ILGIS - ' + tld.length);
+            modifyUrlPart(url, index, tld.length);
+        });
+        foundValue = true;
+    }
+
     return foundValue;
 }
 
 function modifyUrlPart(url, index, length){
-    return url.substring(0, index) + '<span class="dangerousSymbol">' + url.substring(index, index + length) + '</span>' + url.substring(index + length + 1);
+    return url.substring(0, index) + '<span class="dangerousSymbol">' + url.substring(index, index + length) + '</span>' + url.substring(index + length);
 }
 
 // Highlightening dangerous parts of URL
@@ -175,6 +240,7 @@ async function checkWebsiteExistence(url){
     // }
     try {
         const response = await fetch(url, { method: 'HEAD' });
+
         if (response.ok) {
             console.log('URL exists:', url);
             return true;
