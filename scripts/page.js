@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Checking for defined phishing signs
 function checkPhishingSigns(url){
     var phishing = false;
-    logMessage('Dabartinis URL - ' +  url);
+
     //TBA add collapsibles and markers inside of this
     if (checkPlagiarisedLetter(url)){
         logMessage('Rasta plagijuota raidė');
@@ -60,6 +60,11 @@ function checkPhishingSigns(url){
         logMessage('Rastas @ simbolis');
         phishing = true;
     }
+
+    if (checkDotsDashes(url)){
+        logMessage('Rastas didelis brūkšnelių ir taškų skaičius');
+        phishing = true;
+    }
     
     return phishing;
 }
@@ -88,6 +93,7 @@ function checkPlagiarisedLetter(url){
                 if (checkWebsiteExistence(modifiedUrl)){
                     //Čia reiktų įdėti marker
                     logMessage('URL su raide - ' +  modifiedUrl);
+                    
                     var newUrl = modifyUrlSymbol(url, index);
                     document.getElementById('url-display').innerHTML = newUrl;
                     foundValue = true;
@@ -123,7 +129,7 @@ function checkUrlShorteners(url){
         if (url.includes(shortener)){
             var index = url.indexOf(shortener);
             var newUrl = modifyUrlPart(url, index, shortener.length);
-
+            
             document.getElementById('url-display').innerHTML = newUrl;
             foundValue = true;
         }
@@ -181,6 +187,7 @@ function checkCheapTLD(url){
             var index = url.indexOf(cheap);
             var newUrl = modifyUrlPart(url, index, tld.length);
             document.getElementById('url-display').innerHTML = newUrl;
+
             foundValue = true;
         }
     }
@@ -197,7 +204,7 @@ function checkTLDNumber(url){
     const splitHostname = hostname.split('.');
     
     // No TLD found
-    if(splitHostname.length <= 1){
+    if (splitHostname.length <= 1){
         return foundValue;
     }
 
@@ -209,7 +216,6 @@ function checkTLDNumber(url){
         if (splitHostname[i] !== '' && tldRegex.test(splitHostname[i])){
             numberOfTLDs++;
             tlds.push(splitHostname[i]);
-            // logMessage('TLD - ' + splitHostname[i]);
         } else {
             break;
         }
@@ -217,11 +223,9 @@ function checkTLDNumber(url){
 
     if (numberOfTLDs > 1){
         tlds.forEach(tld =>{
-            logMessage('TLD BUS - ' + tld);
             const index = url.indexOf(tld);
-            logMessage('INDEX BUS - ' + index);
-            logMessage('ILGIS - ' + tld.length);
-            modifyUrlPart(url, index, tld.length);
+            var newUrl = modifyUrlPart(url, index, tld.length);
+            document.getElementById('url-display').innerHTML = newUrl;
         });
         foundValue = true;
     }
@@ -234,7 +238,7 @@ function checkAtSymbol(url){
 
     var foundValue = false;
 
-    if(url.includes(atSymbol)){
+    if (url.includes(atSymbol)){
         var index = url.indexOf(atSymbol);
         var newUrl = modifyUrlSymbol(url, index);
 
@@ -243,6 +247,44 @@ function checkAtSymbol(url){
         foundValue = true;
     }
 
+    return foundValue;
+}
+
+function checkDotsDashes(url){
+    var foundValue = false;
+
+    let dashCount = 0;
+    let dotCount = 0;
+
+    const dashIndexes = [];
+    const dotIndexes = [];
+
+    for (let i = 0; i < url.length; i++){
+        if (url[i] === '-'){
+            dashCount++;
+            dashIndexes.push(i);
+        }
+        if (url[i] === '.'){
+            dotCount++;
+            dotIndexes.push(i);
+        }
+    }
+
+    if (dashCount > 3){
+        dashIndexes.forEach(dash =>{
+            var modifyUrl = modifyUrlSymbol(url, dash);
+            document.getElementById('url-display').innerHTML = modifyUrl;
+        });
+        foundValue = true;
+    }
+
+    if (dotCount > 4){
+        dotIndexes.forEach(dot =>{
+            var modifyUrl = modifyUrlSymbol(url, dot);
+            document.getElementById('url-display').innerHTML = modifyUrl;
+        });
+        foundValue = true;
+    }
     return foundValue;
 }
 
