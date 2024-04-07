@@ -1,5 +1,11 @@
 //Script file for modifying information, looking for phishing signs
 
+let modifiedUrl = '';
+
+const sslCertificate = false;
+const dangerousSymbolStart = '<span class="dangerousSymbol">';
+const dangerousSymbolEnd = '</span>';
+
 // Displaying the URL of the current active tab
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -13,8 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (response.success){
             const currentUrl = url;
 
-            if (checkPhishingSigns(currentUrl))
+            modifiedUrl = currentUrl;
+
+            if (checkPhishingSigns())
             {
+                document.getElementById('url-display').innerHTML = modifiedUrl;
                 console.log('Checking');
             } 
         }
@@ -22,21 +31,22 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Checking for defined phishing signs
-function checkPhishingSigns(url){
+function checkPhishingSigns(){
     var phishing = false;
+    var url = modifiedUrl;
 
     //TBA add collapsibles and markers inside of this
-    if (checkPlagiarisedLetter(url)){
+    if (checkPlagiarisedLetter()){
         logMessage('Rasta plagijuota raidė');
         phishing = true;
     }
 
-    if (checkLongUrl(url)){
+    if (checkLongUrl()){
         logMessage('Rastas ilgas URL');
         phishing = true;
     }
 
-    if (checkUrlShorteners(url)){
+    if (checkUrlShorteners()){
         logMessage('Rastas URL trumpintojas');
         phishing = true;
     }
@@ -56,20 +66,31 @@ function checkPhishingSigns(url){
         phishing = true;
     }
 
-    if(checkAtSymbol(url)){
+    if(checkAtSymbol()){
         logMessage('Rastas @ simbolis');
         phishing = true;
     }
 
-    if (checkDotsDashes(url)){
+    if (checkDotsDashes()){
         logMessage('Rastas didelis brūkšnelių ir taškų skaičius');
         phishing = true;
     }
-    
+
+    if(!checkSSLCertificate(url)){
+        logMessage('SSL Sertifikatas nerastas');
+        phishing = true;
+    }
+
+    if (checkIPAdress(url)){
+        logMessage('Rastas IP adresas');
+        phishing = true;
+    }
+
     return phishing;
+    
 }
 
-function checkPlagiarisedLetter(url){
+function checkPlagiarisedLetter(){
     const plagiarisedLetters = [0, 1, 3];
     const replacePlagiarisedLetter = {
         '1': ['l', 'i'],
@@ -79,59 +100,56 @@ function checkPlagiarisedLetter(url){
 
     var foundValue = false;
 
-    for (const character of plagiarisedLetters){
-        logMessage('simbolis' + character);
+    if (!checkIPAdress(modifiedUrl)){
 
-        if (url.includes(character)){
-            var index = url.indexOf(character);
-            
-            for (const replaced of replacePlagiarisedLetter[character])
-            {
-                logMessage('modify ' + replaced);
-                const modifiedUrl = url.substring(0, index) + replaced + url.substring(index + 1);
+        for (const character of plagiarisedLetters){
+
+            if (modifiedUrl.includes(character)){
+                var index = modifiedUrl.indexOf(character);
                 
-                if (checkWebsiteExistence(modifiedUrl)){
-                    //Čia reiktų įdėti marker
-                    logMessage('URL su raide - ' +  modifiedUrl);
+                for (const replaced of replacePlagiarisedLetter[character])
+                {
+                    const modify = modifiedUrl.substring(0, index) + replaced + modifiedUrl.substring(index + 1);
                     
-                    var newUrl = modifyUrlSymbol(url, index);
-                    document.getElementById('url-display').innerHTML = newUrl;
-                    foundValue = true;
+                    if (checkWebsiteExistence(modify)){
+                        modifiedUrl = modifyUrlSymbol(modifiedUrl, index);
+
+                        foundValue = true;
+                        break;
+                    }
                 }
             }
         }
-    }
+    }    
 
     return foundValue;
 }
 
-function checkLongUrl(url){
+function checkLongUrl(){
     var foundValue = false;
 
     const longUrl = 54;
     var regex = /(?:https?:\/\/)?(?:www\.)?/;
     
-    var cleanedUrl = url.replace(regex, "");
+    var cleanedUrl = modifiedUrl.replace(regex, "");
     if (cleanedUrl.length >= longUrl){
-        document.getElementById('url-display').textContent = url;
-        
         foundValue = true;
     }
 
     return foundValue;
 }
 
-function checkUrlShorteners(url){
+function checkUrlShorteners(){
     const urlShorteners = ['tinyurl.com', 'qrco.de', 'shorturl.at', 'bit.ly'];
     var foundValue = false;
 
     for (const shortener of urlShorteners){
-        if (url.includes(shortener)){
-            var index = url.indexOf(shortener);
-            var newUrl = modifyUrlPart(url, index, shortener.length);
-            
-            document.getElementById('url-display').innerHTML = newUrl;
+        if (modifiedUrl.includes(shortener)){
+            var index = modifiedUrl.indexOf(shortener);
+
+            modifiedUrl = modifyUrlPart(modifiedUrl, index, shortener.length);
             foundValue = true;
+            break;
         }
     }
 
@@ -143,7 +161,7 @@ function checkNativeTLD(url){
 
     var foundValue = false;
     
-    if (!checkUrlShorteners(url)){
+    if (!checkUrlShorteners(url) && !checkCheapTLD(url)){
         const urlObject = new URL(url);
         let hostname = urlObject.hostname;
         const splitHostname = hostname.split('.');
@@ -151,7 +169,6 @@ function checkNativeTLD(url){
 
         if (oldTLD !== nativeTLD)
         {
-            logMessage('URL su TLD - ' +  urlObject);
             // Assigning the native TLD, to see if a website like that exists
             splitHostname.push(nativeTLD);
             hostname = splitHostname.join('.');
@@ -160,10 +177,8 @@ function checkNativeTLD(url){
             var newUrl = urlObject.href;
 
             if (checkWebsiteExistence(newUrl)){
-                var index = url.indexOf(oldTLD);
-                var modifiedUrl = modifyUrlPart(url, index, oldTLD.length);
-                
-                document.getElementById('url-display').innerHTML = modifiedUrl;
+                var index = modifiedUrl.indexOf(oldTLD);
+                modifiedUrl = modifyUrlPart(modifiedUrl, index, oldTLD.length);
                 
                 foundValue = true;
             }
@@ -184,9 +199,8 @@ function checkCheapTLD(url){
 
     for (const cheap of cheapTLDs){
         if (tld === cheap){
-            var index = url.indexOf(cheap);
-            var newUrl = modifyUrlPart(url, index, tld.length);
-            document.getElementById('url-display').innerHTML = newUrl;
+            var index = modifiedUrl.indexOf(cheap);
+            modifiedUrl = modifyUrlPart(modifiedUrl, index, tld.length);
 
             foundValue = true;
         }
@@ -201,7 +215,7 @@ function checkTLDNumber(url){
     const urlObject = new URL(url);
 
     const hostname = urlObject.hostname;
-    const splitHostname = hostname.split('.');
+    const splitHostname = hostname.startsWith('www.') ? hostname.substring(4).split('.') : hostname.split('.');
     
     // No TLD found
     if (splitHostname.length <= 1){
@@ -223,26 +237,24 @@ function checkTLDNumber(url){
 
     if (numberOfTLDs > 1){
         tlds.forEach(tld =>{
-            const index = url.indexOf(tld);
-            var newUrl = modifyUrlPart(url, index, tld.length);
-            document.getElementById('url-display').innerHTML = newUrl;
+            const index = modifiedUrl.indexOf(tld);
+            modifiedUrl = modifyUrlPart(modifiedUrl, index, tld.length);
         });
+
         foundValue = true;
     }
 
     return foundValue;
 }
 
-function checkAtSymbol(url){
+function checkAtSymbol(){
     const atSymbol = '@';
 
     var foundValue = false;
 
-    if (url.includes(atSymbol)){
-        var index = url.indexOf(atSymbol);
-        var newUrl = modifyUrlSymbol(url, index);
-
-        document.getElementById('url-display').innerHTML = newUrl;
+    if (modifiedUrl.includes(atSymbol)){
+        var index = modifiedUrl.indexOf(atSymbol);
+        modifiedUrl = modifyUrlSymbol(modifiedUrl, index);
 
         foundValue = true;
     }
@@ -250,51 +262,92 @@ function checkAtSymbol(url){
     return foundValue;
 }
 
-function checkDotsDashes(url){
+function checkDotsDashes(){
     var foundValue = false;
 
     let dashCount = 0;
     let dotCount = 0;
 
-    const dashIndexes = [];
-    const dotIndexes = [];
+    var dashIndexes = [];
+    var dotIndexes = [];
 
-    for (let i = 0; i < url.length; i++){
-        if (url[i] === '-'){
+    for (let i = 0; i < modifiedUrl.length; i++){
+        if (modifiedUrl[i] === '-'){
             dashCount++;
             dashIndexes.push(i);
         }
-        if (url[i] === '.'){
+        if (modifiedUrl[i] === '.'){
             dotCount++;
             dotIndexes.push(i);
+        
         }
     }
 
     if (dashCount > 3){
-        dashIndexes.forEach(dash =>{
-            var modifyUrl = modifyUrlSymbol(url, dash);
-            document.getElementById('url-display').innerHTML = modifyUrl;
-        });
         foundValue = true;
+        var count = 0;
+
+        dashIndexes.forEach(dash => {
+            modifiedUrl = modifyUrlSymbol(modifiedUrl, dash + count);
+            count += dangerousSymbolStart.length + dangerousSymbolEnd.length;
+        });
     }
 
     if (dotCount > 4){
+        foundValue = true;
+        var count = 0;
+
         dotIndexes.forEach(dot =>{
-            var modifyUrl = modifyUrlSymbol(url, dot);
-            document.getElementById('url-display').innerHTML = modifyUrl;
+            modifiedUrl = modifyUrlSymbol(modifiedUrl, dot + count);
+            count += dangerousSymbolStart.length + dangerousSymbolEnd.length;
         });
+    }
+
+    return foundValue;
+}
+
+function checkSSLCertificate(){
+    const sslCertificate = 'https://';
+
+    return modifiedUrl.startsWith(sslCertificate);
+}
+
+function checkIPAdress(url){
+    var foundValue = false;
+    // Regex for IPv4
+    const ipv4Regex = /\b(?:\d{1,3}\.){3}\d{1,3}\b/;
+    
+    // Regex for IPv6
+    const ipv6Regex = /(?:^|\s)(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}(?:$|\s)/i;
+
+    const ipv4Match = url.match(ipv4Regex);
+    logMessage(ipv4Match);
+    if (ipv4Match){
+        var index = modifiedUrl.indexOf(ipv4Match[0]);
+        var length = index + ipv4Match.length;
+        modifiedUrl = modifyUrlPart(modifiedUrl, index, length);
+        
         foundValue = true;
     }
+
+    const ipv6Match = modifiedUrl.match(ipv6Regex);
+    if (ipv6Match){
+        var index = modifiedUrl.indexOf(ipv6Match[0]);
+        modifiedUrl = modifyUrlPart(modifiedUrl, index, ipv6Match.length);
+        
+        foundValue = true;
+    }
+
     return foundValue;
 }
 
 function modifyUrlPart(url, index, length){
-    return url.substring(0, index) + '<span class="dangerousSymbol">' + url.substring(index, index + length) + '</span>' + url.substring(index + length);
+    return url.substring(0, index) + dangerousSymbolStart + url.substring(index, index + length) + dangerousSymbolEnd + url.substring(index + length);
 }
 
 // Highlightening dangerous parts of URL
 function modifyUrlSymbol(url, index){
-    return url.substring(0, index) + '<span class="dangerousSymbol">' + url.charAt(index) + '</span>' + url.substring(index + 1);
+    return url.substring(0, index) + dangerousSymbolStart + url.charAt(index) + dangerousSymbolEnd + url.substring(index + 1);
 }
 
 // Helper function to check if given website exists

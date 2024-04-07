@@ -47,8 +47,6 @@ function checkUrl(url) {
 
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('GAVOME BACKGROUND.JS');
-
     if (message.action === 'getURL') {
         const url = message.url;
 
@@ -56,8 +54,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             console.log('URL ', url);
             sendResponse({ success: true, url: url });
         }
+        return true;
     }
-    return true;
 });
 
 // Open a popup window of an extension
