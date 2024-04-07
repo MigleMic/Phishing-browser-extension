@@ -55,6 +55,11 @@ function checkPhishingSigns(url){
         logMessage('Rastas daugiau nei vienas TLD');
         phishing = true;
     }
+
+    if(checkAtSymbol(url)){
+        logMessage('Rastas @ simbolis');
+        phishing = true;
+    }
     
     return phishing;
 }
@@ -95,6 +100,8 @@ function checkPlagiarisedLetter(url){
 }
 
 function checkLongUrl(url){
+    var foundValue = false;
+
     const longUrl = 54;
     var regex = /(?:https?:\/\/)?(?:www\.)?/;
     
@@ -102,10 +109,10 @@ function checkLongUrl(url){
     if (cleanedUrl.length >= longUrl){
         document.getElementById('url-display').textContent = url;
         
-        return true;
+        foundValue = true;
     }
 
-    return false;
+    return foundValue;
 }
 
 function checkUrlShorteners(url){
@@ -127,6 +134,8 @@ function checkUrlShorteners(url){
 
 function checkNativeTLD(url){
     let nativeTLD = 'lt';
+
+    var foundValue = false;
     
     if (!checkUrlShorteners(url)){
         const urlObject = new URL(url);
@@ -150,12 +159,12 @@ function checkNativeTLD(url){
                 
                 document.getElementById('url-display').innerHTML = modifiedUrl;
                 
-                return true;
+                foundValue = true;
             }
         }
     }
 
-    return false;
+    return foundValue;
 }
 
 function checkCheapTLD(url){
@@ -214,6 +223,23 @@ function checkTLDNumber(url){
             logMessage('ILGIS - ' + tld.length);
             modifyUrlPart(url, index, tld.length);
         });
+        foundValue = true;
+    }
+
+    return foundValue;
+}
+
+function checkAtSymbol(url){
+    const atSymbol = '@';
+
+    var foundValue = false;
+
+    if(url.includes(atSymbol)){
+        var index = url.indexOf(atSymbol);
+        var newUrl = modifyUrlSymbol(url, index);
+
+        document.getElementById('url-display').innerHTML = newUrl;
+
         foundValue = true;
     }
 
