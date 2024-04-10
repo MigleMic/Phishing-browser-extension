@@ -153,8 +153,6 @@ function insert_reason_data(){
             {ID: 'Dot_Dash', Name: 'Neįprasti simboliai', Description: 'URL pasikartojantys simboliai "." bei "-" gali reikšti, jog tai apgvaikų svetainė!'},
             {ID: 'SSL_Certificate', Name: 'SSL sertifikatas', Description: 'Neaptikas saugumo sertifikatas, kuris užtikrina saugų duomenų perdavimą!'},
             {ID: 'IP_Adress', Name: 'IP adresas', Description: 'URL esantis IP adresas gali reikšti potencialią duomenų ataką!', Marker: 'IP adresas'},
-            {ID: 'Favicon', Name: 'Svetainės piktograma', Description: 'Oficialios svetainės turi savo piktogramas, jos neturėjimas gali reikšti duomenų viliojimo ataką!'},
-            {ID: 'Website_Age', Name: 'Internetinės svetainės amžius', Description: 'Jaunesnė nei pusė metų internetinė svetainė gali reikšti potencialią duomenų viliojimo ataką!'},
             {ID: 'Suffix_Prefix', Name: 'Žodžių pridėjimas į URL', Description: 'Pridėtiniai žodžiai pakeičia URL, atkreipkite dėmesį į URL, ar jis neiškraipytas!'}
         ];
 
@@ -198,8 +196,6 @@ function insert_sample_data(){
             {ID: 'DD4', Reason_ID:'Dot_Dash', URL: 'www.delfi.lt/naujienos.pasaulyje.popup.html?=data.html'},    
             {ID: 'SSL1', Reason_ID:'SSL_Certificate', Sample: 'Jei svetainė turi saugumo sertifikatą, adreso juostoje yra matomas užrakto simbolis'},
             {ID: 'IP1', Reason_ID:'IP_Adress', Sample: 'URL negali būti IP adresas, pasitikrinkite ar tikrai norite patekti į šią svetainę'}, 
-            {ID: 'Fv1', Reason_ID:'Favicon', Sample: 'Svetainės piktogramą galite pamatyti adreso juostoje arba lango viršuje, atkreipkite dėmesį'},
-            {ID: 'WA1', Reason_ID:'Website_Age', Sample: 'Venkite ėjimo į nežinomas internetines svetaines, jei URL jums nežinomas'},
             {ID: 'SP1', Reason_ID:'Suffix_Prefix', URL: 'www.swedbank-netikra.lt'},
             {ID: 'SP2', Reason_ID:'Suffix_Prefix', URL: 'www.saugus-seb.lt'},
             {ID: 'SP3', Reason_ID:'Suffix_Prefix', URL: 'www.lrmuitine-mokestis.lt'},

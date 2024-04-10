@@ -86,6 +86,11 @@ function checkPhishingSigns(){
         phishing = true;
     }
 
+    if (checkPrefixSufix(url)){
+        logMessage('Rastas pridėtinis žodis');
+        phishing = true;
+    }
+
     return phishing;
     
 }
@@ -338,6 +343,24 @@ function checkIPAdress(url){
         foundValue = true;
     }
 
+    return foundValue;
+}
+
+function checkPrefixSufix(url){
+    const words = ['saugus', 'patvirtinimas', 'nemokamas', 'ispardavimas', 'parama'];
+
+    var foundValue = false;
+
+    for (const word of words){
+        if(url.includes(word)){
+            var index = modifiedUrl.indexOf(word);
+
+            modifiedUrl = modifyUrlPart(modifiedUrl, index, word.length);
+            foundValue = true;
+            break;
+        }
+    }
+    
     return foundValue;
 }
 
