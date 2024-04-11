@@ -1,30 +1,28 @@
 //Script file for modifying information, looking for phishing signs
+import { create_database, getMarkerByID } from "./databaseCreation.js";
+
+create_database();
 
 let modifiedUrl = '';
-
-const sslCertificate = false;
-const dangerousSymbolStart = '<span class="dangerousSymbol">';
-const dangerousSymbolEnd = '</span>';
+let dataIndex = 1;
 
 // Displaying the URL of the current active tab
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const url = urlParams.get('url');
 
-    console.log('SIUNCIAM');
+    console.log('Sending message');
     // Send message to background script with the URL
     chrome.runtime.sendMessage({ action: 'getURL', url: url }, (response) => {
-        console.log('GAVOM ATSAKA');
+        console.log('Getting response');
 
         if (response.success){
             const currentUrl = url;
-
             modifiedUrl = currentUrl;
 
             if (checkPhishingSigns())
             {
                 document.getElementById('url-display').innerHTML = modifiedUrl;
-                console.log('Checking');
             } 
         }
     });
@@ -41,7 +39,7 @@ function checkPhishingSigns(){
         phishing = true;
     }
 
-    if (checkLongUrl()){
+    if (checkLongUrl(url)){
         logMessage('Rastas ilgas URL');
         phishing = true;
     }
@@ -66,7 +64,7 @@ function checkPhishingSigns(){
         phishing = true;
     }
 
-    if(checkAtSymbol()){
+    if (checkAtSymbol()){
         logMessage('Rastas @ simbolis');
         phishing = true;
     }
@@ -76,7 +74,7 @@ function checkPhishingSigns(){
         phishing = true;
     }
 
-    if(!checkSSLCertificate(url)){
+    if (!checkSSLCertificate(url)){
         logMessage('SSL Sertifikatas nerastas');
         phishing = true;
     }
@@ -91,11 +89,10 @@ function checkPhishingSigns(){
         phishing = true;
     }
 
-    return phishing;
-    
+    return phishing;   
 }
 
-function checkPlagiarisedLetter(){
+async function checkPlagiarisedLetter(){
     const plagiarisedLetters = [0, 1, 3];
     const replacePlagiarisedLetter = {
         '1': ['l', 'i'],
@@ -117,7 +114,13 @@ function checkPlagiarisedLetter(){
                     const modify = modifiedUrl.substring(0, index) + replaced + modifiedUrl.substring(index + 1);
                     
                     if (checkWebsiteExistence(modify)){
-                        modifiedUrl = modifyUrlSymbol(modifiedUrl, index);
+                        modifiedUrl = modifyUrlSymbol(modifiedUrl, index, dataIndex);
+                        document.getElementById('url-display').innerHTML = modifiedUrl;
+
+                        const element = document.getElementById('url-display');
+                        const marker = await getMarkerByID('Plagiarised_Letter');
+
+                        getMessage(element, dataIndex, marker);
 
                         foundValue = true;
                         break;
@@ -130,13 +133,13 @@ function checkPlagiarisedLetter(){
     return foundValue;
 }
 
-function checkLongUrl(){
+function checkLongUrl(url){
     var foundValue = false;
 
     const longUrl = 54;
     var regex = /(?:https?:\/\/)?(?:www\.)?/;
     
-    var cleanedUrl = modifiedUrl.replace(regex, "");
+    var cleanedUrl = url.replace(regex, "");
     if (cleanedUrl.length >= longUrl){
         foundValue = true;
     }
@@ -181,7 +184,7 @@ function checkNativeTLD(url){
 
             var newUrl = urlObject.href;
 
-            if (checkWebsiteExistence(newUrl)){
+            if (!checkWebsiteExistence(newUrl)){
                 var index = modifiedUrl.indexOf(oldTLD);
                 modifiedUrl = modifyUrlPart(modifiedUrl, index, oldTLD.length);
                 
@@ -364,13 +367,17 @@ function checkPrefixSufix(url){
     return foundValue;
 }
 
-function modifyUrlPart(url, index, length){
-    return url.substring(0, index) + dangerousSymbolStart + url.substring(index, index + length) + dangerousSymbolEnd + url.substring(index + length);
+function modifyUrlPart(url, index, length, dataIndex){
+    const span = `<span class="dangerousSymbol" dataIndex="${dataIndex}">`;
+    dataIndex++;
+    return url.substring(0, index) +  span + url.substring(index, index + length) + '</span>' + url.substring(index + length);
 }
 
 // Highlightening dangerous parts of URL
-function modifyUrlSymbol(url, index){
-    return url.substring(0, index) + dangerousSymbolStart + url.charAt(index) + dangerousSymbolEnd + url.substring(index + 1);
+function modifyUrlSymbol(url, index, dataIndex){
+    const span = `<span class="dangerousSymbol" dataIndex="${dataIndex}">`;
+    dataIndex++;
+    return url.substring(0, index) + span + url.charAt(index) + '</span>' + url.substring(index + 1);
 }
 
 // Helper function to check if given website exists
@@ -404,4 +411,34 @@ function logMessage(message){
     const logMessage = document.createElement('div');
     logMessage.textContent = message;
     logContainer.appendChild(logMessage);
+}
+
+function getMessage(element, dataIndex, marker){
+    const spanElements = element.querySelectorAll('span.dangerousSymbol');
+
+    spanElements.forEach(spanElement => {
+        const dataIndexElement = parseInt(spanElement.getAttribute('dataIndex'));
+
+        if (dataIndex === dataIndexElement){
+            const spanBox = spanElement.getBoundingClientRect();
+            const x = spanBox.left + 10;
+            const y = spanBox.top - 25;
+
+            showMessage(x, y, marker);
+        }
+    });
+}
+
+function showMessage(x, y, marker){
+    const messageBox = document.createElement('div');
+    messageBox.classList.add('message-box');
+    messageBox.style.left = `${x}px`;
+    messageBox.style.top = `${y}px`;
+    messageBox.width = 200;
+    messageBox.height = 200;
+
+    messageBox.style.display = 'block';
+    messageBox.textContent = marker;
+
+    document.body.appendChild(messageBox);
 }
