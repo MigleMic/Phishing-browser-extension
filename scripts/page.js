@@ -5,6 +5,7 @@ create_database();
 
 let modifiedUrl = '';
 let dataIndex = 1;
+let reasons = [];
 
 // Displaying the URL of the current active tab
 document.addEventListener('DOMContentLoaded', () => {
@@ -34,6 +35,11 @@ async function checkPhishingSigns() {
     var url = modifiedUrl;
 
     //TBA add collapsibles and markers inside of this
+    if (await checkIPAdress(url)) {
+        logMessage('Rastas IP adresas');
+        phishing = true;
+    }
+    
     if (await checkPlagiarisedLetter()) {
         logMessage('Rasta plagijuota raidė');
         phishing = true;
@@ -49,13 +55,13 @@ async function checkPhishingSigns() {
         phishing = true;
     }
 
-    if (await checkNativeTLD(url)) {
-        logMessage('Rastas ne šalies aukščiausio lygio domenas');
+    if (await checkCheapTLD(url)) {
+        logMessage('Rastas pigus aukščiausio lygio domenas');
         phishing = true;
     }
 
-    if (await checkCheapTLD(url)) {
-        logMessage('Rastas pigus aukščiausio lygio domenas');
+    if (await checkNativeTLD(url)) {
+        logMessage('Rastas ne šalies aukščiausio lygio domenas');
         phishing = true;
     }
 
@@ -79,11 +85,6 @@ async function checkPhishingSigns() {
         phishing = true;
     }
 
-    if (await checkIPAdress(url)) {
-        logMessage('Rastas IP adresas');
-        phishing = true;
-    }
-
     if (await checkPrefixSufix(url)) {
         logMessage('Rastas pridėtinis žodis');
         phishing = true;
@@ -92,7 +93,50 @@ async function checkPhishingSigns() {
     return phishing;   
 }
 
- async function checkPlagiarisedLetter() {
+async function checkIPAdress(url) {
+    var foundValue = false;
+    // Regex for IPv4
+    const ipv4Regex = /\b(?:\d{1,3}\.){3}\d{1,3}\b/;
+    
+    // Regex for IPv6
+    const ipv6Regex = /(?:^|\s)(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}(?:$|\s)/i;
+
+    const ipv4Match = url.match(ipv4Regex);
+    if (ipv4Match) {
+        var index = modifiedUrl.indexOf(ipv4Match[0]);
+        var length = index + ipv4Match.length;
+        var dIndex = dataIndex;
+        modifiedUrl = modifyUrlPart(modifiedUrl, index, length, dIndex);
+
+        document.getElementById('url-display').innerHTML = modifiedUrl;
+
+        const element = document.getElementById('url-display');
+        const marker = await getMarkerByID('IP_Adress');
+
+        getMessage(element, dIndex, marker);
+        reasons.push('IP_Adress');
+        foundValue = true;
+    }
+
+    const ipv6Match = modifiedUrl.match(ipv6Regex);
+    if (ipv6Match) {
+        var index = modifiedUrl.indexOf(ipv6Match[0]);
+        modifiedUrl = modifyUrlPart(modifiedUrl, index, ipv6Match.length);
+
+        document.getElementById('url-display').innerHTML = modifiedUrl;
+
+        const element = document.getElementById('url-display');
+        const marker = await getMarkerByID('IP_Adress');
+
+        getMessage(element, dataIndex, marker);
+        reasons.push('IP_Adress');
+        foundValue = true;
+    }
+
+    return foundValue;
+}
+
+async function checkPlagiarisedLetter() {
     const plagiarisedLetters = [0, 1, 3];
     const replacePlagiarisedLetter = {
         '1': ['l', 'i'],
@@ -101,9 +145,8 @@ async function checkPhishingSigns() {
     };
 
     var foundValue = false;
-    var checkIPAdressResult = await checkIPAdress(modifiedUrl);
 
-    if (!checkIPAdressResult) {
+    if (!reasons.includes('IP_Adress')) {
         for (const character of plagiarisedLetters) {
             if (modifiedUrl.includes(character)) {
                 var index = modifiedUrl.indexOf(character);
@@ -112,15 +155,17 @@ async function checkPhishingSigns() {
                     const modify = modifiedUrl.substring(0, index) + replaced + modifiedUrl.substring(index + 1);
                     
                     if (checkWebsiteExistence(modify)) {
-                        modifiedUrl = modifyUrlSymbol(modifiedUrl, index, dataIndex);
+                        var dIndex = dataIndex;
+                        modifiedUrl = modifyUrlSymbol(modifiedUrl, index, dIndex);
                         document.getElementById('url-display').innerHTML = modifiedUrl;
 
                         const element = document.getElementById('url-display');
                         const marker = await getMarkerByID('Plagiarised_Letter');
 
-                        getMessage(element, dataIndex, marker);
+                        getMessage(element, dIndex, marker);
 
                         foundValue = true;
+                        reasons.push('Plagiarised_Letter');
                         break;
                     }
                 }
@@ -140,6 +185,7 @@ function checkLongUrl(url) {
     var cleanedUrl = url.replace(regex, "");
     if (cleanedUrl.length >= longUrl){
         foundValue = true;
+        reasons.push('URL_Length');
     }
 
     return foundValue;
@@ -148,63 +194,24 @@ function checkLongUrl(url) {
 async function checkUrlShorteners() {
     const urlShorteners = ['tinyurl.com', 'qrco.de', 'shorturl.at', 'bit.ly'];
     var foundValue = false;
-
+    
     for (const shortener of urlShorteners) {
         if (modifiedUrl.includes(shortener)) {
             var index = modifiedUrl.indexOf(shortener);
+            var dIndex = dataIndex;
 
-            modifiedUrl = modifyUrlPart(modifiedUrl, index, shortener.length, dataIndex);
+            modifiedUrl = modifyUrlPart(modifiedUrl, index, shortener.length, dIndex);
 
             document.getElementById('url-display').innerHTML = modifiedUrl;
 
             const element = document.getElementById('url-display');
             const marker = await getMarkerByID('URL_Shortener');
 
-            getMessage(element, dataIndex, marker);
+            getMessage(element, dIndex, marker);
 
             foundValue = true;
+            reasons.push('URL_Shortener');
             break;
-        }
-    }
-
-    return foundValue;
-}
-
-async function checkNativeTLD(url) {
-    let nativeTLD = 'lt';
-
-    var foundValue = false;
-
-    var checkUrlShortenerResult = await checkUrlShorteners(url);
-    var checkCheapTLDResult = await checkCheapTLD(url);
-
-    if (!checkUrlShortenerResult && !checkCheapTLDResult) {
-        const urlObject = new URL(url);
-        let hostname = urlObject.hostname;
-        const splitHostname = hostname.split('.');
-        const oldTLD  = splitHostname.pop().toString();
-
-        if (oldTLD !== nativeTLD) {
-            // Assigning the native TLD, to see if a website like that exists
-            splitHostname.push(nativeTLD);
-            hostname = splitHostname.join('.');
-            urlObject.hostname = hostname;
-
-            var newUrl = urlObject.href;
-
-            if (checkWebsiteExistence(newUrl)) {
-                var index = modifiedUrl.indexOf(oldTLD);
-                modifiedUrl = modifyUrlPart(modifiedUrl, index, oldTLD.length, dataIndex);
-
-                document.getElementById('url-display').innerHTML = modifiedUrl;
-
-                const element = document.getElementById('url-display');
-                const marker = await getMarkerByID('Native_Domain');
-
-                getMessage(element, dataIndex, marker);
-                
-                foundValue = true;
-            }
         }
     }
 
@@ -223,16 +230,60 @@ async function checkCheapTLD(url) {
     for (const cheap of cheapTLDs) {
         if (tld === cheap) {
             var index = modifiedUrl.indexOf(cheap);
-            modifiedUrl = modifyUrlPart(modifiedUrl, index, tld.length, dataIndex);
+            var dIndex = dataIndex;
+
+            modifiedUrl = modifyUrlPart(modifiedUrl, index, tld.length, dIndex);
 
             document.getElementById('url-display').innerHTML = modifiedUrl;
 
             const element = document.getElementById('url-display');
-            const marker = await getMarkerByID('Cheap_Domain');
+            const marker = await getMarkerByID('Cheap_TLD');
 
-            getMessage(element, dataIndex, marker);
+            getMessage(element, dIndex, marker);
 
             foundValue = true;
+            reasons.push('Cheap_TLD');
+            break;
+        }
+    }
+
+    return foundValue;
+}
+
+async function checkNativeTLD(url) {
+    let nativeTLD = 'lt';
+
+    var foundValue = false;
+
+    if (!reasons.includes('URL_Shortener') && !reasons.includes('Cheap_TLD')) {
+        const urlObject = new URL(url);
+        let hostname = urlObject.hostname;
+        const splitHostname = hostname.split('.');
+        const oldTLD  = splitHostname.pop().toString();
+
+        if (oldTLD !== nativeTLD) {
+            // Assigning the native TLD, to see if a website like that exists
+            splitHostname.push(nativeTLD);
+            hostname = splitHostname.join('.');
+            urlObject.hostname = hostname;
+
+            var newUrl = urlObject.href;
+
+            if (checkWebsiteExistence(newUrl)) {
+                var index = modifiedUrl.indexOf(oldTLD);
+                var dIndex = dataIndex;
+
+                modifiedUrl = modifyUrlPart(modifiedUrl, index, oldTLD.length, dIndex);
+
+                document.getElementById('url-display').innerHTML = modifiedUrl;
+
+                const element = document.getElementById('url-display');
+                const marker = await getMarkerByID('Native_TLD');
+
+                getMessage(element, dIndex, marker);
+                reasons.push('Native_TLD');
+                foundValue = true;
+            }
         }
     }
 
@@ -246,7 +297,7 @@ async function checkTLDNumber(url) {
 
     const hostname = urlObject.hostname;
     const splitHostname = hostname.startsWith('www.') ? hostname.substring(4).split('.') : hostname.split('.');
-    
+
     // No TLD found
     if (splitHostname.length <= 1) {
         return foundValue;
@@ -266,18 +317,26 @@ async function checkTLDNumber(url) {
     }
 
     if (numberOfTLDs > 1) {
-        tlds.forEach(async tld => {
+        let markerAdded = false;
+
+        for (const tld of tlds) {
             const index = modifiedUrl.indexOf(tld);
-            modifiedUrl = modifyUrlPart(modifiedUrl, index, tld.length);
+            var dIndex = dataIndex;
 
+            modifiedUrl = modifyUrlPart(modifiedUrl, index, tld.length, dIndex);       
             document.getElementById('url-display').innerHTML = modifiedUrl;
+            console.log('Pridejau - ', markerAdded);
 
-            const element = document.getElementById('url-display');
-            const marker = await getMarkerByID('Cheap_Domain');
+            if (!markerAdded){
+                const element = document.getElementById('url-display');
+                const marker = await getMarkerByID('Many_TLD');
 
-            getMessage(element, dataIndex, marker);
-        });
-
+                getMessage(element, dIndex, marker);
+                console.log('IDEJO KARTA');
+                markerAdded = true;
+            }
+        }
+        reasons.push('Many_TLD');
         foundValue = true;
     }
 
@@ -291,15 +350,17 @@ async function checkAtSymbol() {
 
     if (modifiedUrl.includes(atSymbol)) {
         var index = modifiedUrl.indexOf(atSymbol);
-        modifiedUrl = modifyUrlSymbol(modifiedUrl, index);
+        var dIndex = dataIndex;
+        modifiedUrl = modifyUrlSymbol(modifiedUrl, index, dIndex);
 
         document.getElementById('url-display').innerHTML = modifiedUrl;
 
         const element = document.getElementById('url-display');
         const marker = await getMarkerByID('At_Sign');
 
-        getMessage(element, dataIndex, marker);
-
+        console.log(marker);
+        getMessage(element, dIndex, marker);
+        reasons.push('At_Sign');
         foundValue = true;
     }
 
@@ -325,26 +386,35 @@ function checkDotsDashes() {
             dotIndexes.push(i);
         
         }
-    }
+    } 
+
+    var dangerousSymbolStart = '<span class="dangerousSymbol" dataIndex="1">';
+    var dangerousSymbolEnd = '</span>';
 
     if (dashCount > 3) {
         foundValue = true;
         var count = 0;
 
-        dashIndexes.forEach(dash => {
-            modifiedUrl = modifyUrlSymbol(modifiedUrl, dash + count);
+        for (const dash of dashIndexes) {
+            var dIndex = dataIndex;
+            modifiedUrl = modifyUrlSymbol(modifiedUrl, dash + count, dIndex);
             count += dangerousSymbolStart.length + dangerousSymbolEnd.length;
-        });
+            document.getElementById('url-display').innerHTML = modifiedUrl;
+        }
+        reasons.push('Dot_Dash');
     }
 
     if (dotCount > 4) {
         foundValue = true;
         var count = 0;
 
-        dotIndexes.forEach(dot => {
-            modifiedUrl = modifyUrlSymbol(modifiedUrl, dot + count);
+        for (const dot of dotIndexes) {
+            var dIndex = dataIndex;
+            modifiedUrl = modifyUrlSymbol(modifiedUrl, dot + count, dIndex);
             count += dangerousSymbolStart.length + dangerousSymbolEnd.length;
-        });
+            document.getElementById('url-display').innerHTML = modifiedUrl;
+        }
+        reasons.push('Dot_Dash');
     }
 
     return foundValue;
@@ -356,50 +426,6 @@ function checkSSLCertificate() {
     return modifiedUrl.startsWith(sslCertificate);
 }
 
-async function checkIPAdress(url) {
-    var foundValue = false;
-    // Regex for IPv4
-    const ipv4Regex = /\b(?:\d{1,3}\.){3}\d{1,3}\b/;
-    
-    // Regex for IPv6
-    const ipv6Regex = /(?:^|\s)(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}(?:$|\s)/i;
-
-    const ipv4Match = url.match(ipv4Regex);
-    logMessage(ipv4Match);
-
-    if (ipv4Match) {
-        var index = modifiedUrl.indexOf(ipv4Match[0]);
-        var length = index + ipv4Match.length;
-        modifiedUrl = modifyUrlPart(modifiedUrl, index, length);
-
-        document.getElementById('url-display').innerHTML = modifiedUrl;
-
-        const element = document.getElementById('url-display');
-        const marker = await getMarkerByID('IP_Adress');
-
-        getMessage(element, dataIndex, marker);
-        
-        foundValue = true;
-    }
-
-    const ipv6Match = modifiedUrl.match(ipv6Regex);
-    if (ipv6Match) {
-        var index = modifiedUrl.indexOf(ipv6Match[0]);
-        modifiedUrl = modifyUrlPart(modifiedUrl, index, ipv6Match.length);
-
-        document.getElementById('url-display').innerHTML = modifiedUrl;
-
-        const element = document.getElementById('url-display');
-        const marker = await getMarkerByID('IP_Adress');
-
-        getMessage(element, dataIndex, marker);
-        
-        foundValue = true;
-    }
-
-    return foundValue;
-}
-
 async function checkPrefixSufix(url) {
     const words = ['saugus', 'patvirtinimas', 'nemokamas', 'ispardavimas', 'parama', 'mokestis'];
 
@@ -408,16 +434,17 @@ async function checkPrefixSufix(url) {
     for (const word of words) {
         if(url.includes(word)) {
             var index = modifiedUrl.indexOf(word);
+            var dIndex = dataIndex;
 
-            modifiedUrl = modifyUrlPart(modifiedUrl, index, word.length);
+            modifiedUrl = modifyUrlPart(modifiedUrl, index, word.length, dIndex);
 
             document.getElementById('url-display').innerHTML = modifiedUrl;
 
             const element = document.getElementById('url-display');
             const marker = await getMarkerByID('Suffix_Prefix');
 
-            getMessage(element, dataIndex, marker);
-
+            getMessage(element, dIndex, marker);
+            reasons.push('Suffix_Prefix');
             foundValue = true;
             break;
         }
@@ -427,15 +454,15 @@ async function checkPrefixSufix(url) {
 }
 
 // Highlightening dangerous parts of URL
-function modifyUrlPart(url, index, length, dataIndex) {
-    const span = `<span class="dangerousSymbol" dataIndex="${dataIndex}">`;
+function modifyUrlPart(url, index, length, dIndex) {
+    const span = `<span class="dangerousSymbol" dataIndex="${dIndex}">`;
     dataIndex++;
     return url.substring(0, index) +  span + url.substring(index, index + length) + '</span>' + url.substring(index + length);
 }
 
 // Highlightening dangerous symbol of URL
-function modifyUrlSymbol(url, index, dataIndex){
-    const span = `<span class="dangerousSymbol" dataIndex="${dataIndex}">`;
+function modifyUrlSymbol(url, index, dIndex){
+    const span = `<span class="dangerousSymbol" dataIndex="${dIndex}">`;
     dataIndex++;
     return url.substring(0, index) + span + url.charAt(index) + '</span>' + url.substring(index + 1);
 }
@@ -473,16 +500,24 @@ function logMessage(message){
     logContainer.appendChild(logMessage);
 }
 
-function getMessage(element, dataIndex, marker){
+function getMessage(element, dIndex, marker){
     const spanElements = element.querySelectorAll('span.dangerousSymbol');
 
     spanElements.forEach(spanElement => {
         const dataIndexElement = parseInt(spanElement.getAttribute('dataIndex'));
 
-        if (dataIndex === dataIndexElement){
+        if (dIndex === dataIndexElement){
             const spanBox = spanElement.getBoundingClientRect();
-            const x = spanBox.left + 10;
-            const y = spanBox.top - 25;
+
+            var x, y;
+            if (dIndex % 2 === 1) {
+                x = spanBox.left + 10;
+                y = spanBox.top - 30;
+            } else {
+                x = spanBox.left - 10;
+                y = spanBox.top + 30;
+            }
+            
 
             showMessage(x, y, marker);
         }
@@ -492,13 +527,22 @@ function getMessage(element, dataIndex, marker){
 function showMessage(x, y, marker){
     const messageBox = document.createElement('div');
     messageBox.classList.add('message-box');
+
     messageBox.style.left = `${x}px`;
     messageBox.style.top = `${y}px`;
-    messageBox.width = 200;
-    messageBox.height = 200;
 
     messageBox.style.display = 'block';
     messageBox.textContent = marker;
+    var boxWidth = marker.length * 7.5;
+    messageBox.style.width = `${boxWidth}px`;
 
+    const button = document.createElement('button');
+    button.textContent = 'x';
+    button.classList.add('close-button');
+    button.addEventListener('click', () => {
+        messageBox.remove();
+    });
+
+    messageBox.appendChild(button);
     document.body.appendChild(messageBox);
 }

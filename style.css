@@ -35,11 +35,12 @@ body {
 .message-box {
     position: absolute;
     background-color: rgba(173, 216, 230, 0.4); 
-    padding: 5px;
+    padding-top: 15px;
     display: none;
     z-index: 9999;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
     border-radius: 5px;
+    height: 20px;
 
     font-size: 12px;
     font-weight: normal;
@@ -48,12 +49,10 @@ body {
 
 .close-button {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    padding: 5px;
-    background-color: #ccc;
+    top: 1px;
+    right: 3px;
     border: none;
-    color: #fff;
+    background: none;
+    color: black;
     cursor: pointer;
-    border-radius: 50%;
 }
