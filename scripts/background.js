@@ -1,5 +1,4 @@
-// Background service
-// Checks if the URL changes and loads the database
+// Checks if the URL changes
 let previousUrl = '';
 
 // Checking if new tab URL is a new URL
@@ -18,8 +17,8 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
     const url = details.url;
     const tabId = details.tabId;
 
-    chrome.tabs.get(tabId, (tab) =>{
-        if (tab && tab.active){
+    chrome.tabs.get(tabId, (tab) => {
+        if (tab && tab.active) {
             if (url !== previousUrl) {
                 checkUrl(url);
             }
@@ -47,8 +46,8 @@ function checkUrl(url) {
 function excludeFromUrlChecking(url){
     const excludeDomains = ['google', 'drive', 'about:blank', 'file', 'localhost', '404'];
 
-    for (const excluded of excludeDomains){
-        if (url.includes(excluded)){
+    for (const excluded of excludeDomains) {
+        if (url.includes(excluded)) {
             return true;
         }
     }
@@ -59,7 +58,8 @@ function excludeFromUrlChecking(url){
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'getURL') {
         const url = message.url;
-        if (url){
+        
+        if (url) {
             console.log('URL ', url);
             sendResponse({ success: true, url: url }); 
         }
@@ -68,7 +68,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Open a popup window of an extension
-function openPanelWindow(url){
+function openPanelWindow(url) {
     const encodedURL = encodeURIComponent(url);   
 
     //creates a panel html
@@ -81,4 +81,3 @@ function openPanelWindow(url){
         height: 800
     });
 }
-//         checkAndInsertData(database);

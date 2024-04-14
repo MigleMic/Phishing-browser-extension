@@ -1,10 +1,10 @@
 let database = null;
 
 // Database creation
-export function create_database(){
+export function create_database() {
     const request = indexedDB.open('PhishingDatabase');
 
-    request.onerror = function (event){
+    request.onerror = function (event) {
         console.log('Problem opening database:', event.target.error);
     }
 
@@ -28,11 +28,11 @@ export function create_database(){
         phishingSample.createIndex('SampleIndex', 'Sample', {unique: true});
 
         //Objects stores are created
-        phishingReason.transaction.oncomplete = function (event){
+        phishingReason.transaction.oncomplete = function (event) {
             console.log('PhishingReason object store is created');
         }
 
-        phishingSample.transaction.oncomplete = function (event){
+        phishingSample.transaction.oncomplete = function (event) {
             console.log('PhishingSample object store is created');
         }
 
@@ -42,40 +42,42 @@ export function create_database(){
         logger.createIndex('ErrorIndex', 'Error', {unique: false});
         logger.createIndex('MessageIndex', 'Message', {unique: false});
 
-        logger.transaction.oncomplete = function (event){
+        logger.transaction.oncomplete = function (event) {
             console.log('Logger object store is created');
         }
     }
 
-    request.onsuccess = function (event){
+    request.onsuccess = function (event) {
         database = event.target.result;
         console.log('Database opened');
 
         checkAndInsertData(database);
 
-        database.onerror = function (event){
+        database.onerror = function (event) {
             console.log('Failed to open the database', event.target.error);
         }
     }
 }
 
 // Populating PhishingReason table with data
-function insert_reason_data(){
+function insert_reason_data() {
     return new Promise((resolve, reject) => {
         const transactions = database.transaction(['PhishingReason'], 'readwrite');
 
         //Insert data to PhishingReason table
         const reasonStore = transactions.objectStore('PhishingReason');
         const reasonData = [
-            {ID: 'Plagiarised_Letter', Name: 'Lengvai padirbamos raidės', Description: 'Aptikas plagijuota raidė URL, pavojingose svetainėse kai kurios raidės yra pakeičiamos kitais, panašiais simboliais!', Marker: 'Padirbta raidė'},
+            {ID: 'Plagiarised_Letter', Name: 'Lengvai padirbamos raidės', Description: 'Aptikta plagijuota raidė URL, pavojingose svetainėse kai kurios raidės yra pakeičiamos kitais, panašiais simboliais!', Marker: 'Padirbta raidė'},
             {ID: 'URL_Length', Name: 'URL ilgis', Description: 'Ilgas URL, kuriame duomenų vagys gali būti paslėpę neįprastus simbolius bei iškraipę URL!'},
-            {ID: 'Native_Domain', Name: 'Šalies domenas', Description: 'URL esantis URL nesutampa su šalies domenu!', Marker: 'Ne šalies domenas'},
-            {ID: 'Cheap_Domain', Name: 'Pigus domenas', Description: 'Nuorodoje panaudotas pigus domenas, kuriuos naudoja duomenų vagys, atkreipkite dėmesį į naudojamą domeną!', Marker: 'Pigus domenas'},
-            {ID: 'At_Sign', Name: '@ simbolis', Description: 'Aptikas neįprastas simbolis URL, kuris naudojamas nukreipti į kitą svetainę, esančią po @ simbolio!', Marker: 'Neįprastas simbolis @'},
+            {ID: 'URL_Shortener', Name: 'URL trumpintojas', Description: 'Aptiktas URL trumpintojas, kuris slepia tikrąją nuorodą!', Marker: 'URL trumpintojas'},
+            {ID: 'Native_TLD', Name: 'Šalies TLD', Description: 'Aukščiausio lygio domenas, esantis URL, nesutampa su šalies aukščiausio lygio domenu!', Marker: 'Ne šalies aukščiausio lygio domenas'},
+            {ID: 'Cheap_TLD', Name: 'Pigus TLD', Description: 'Nuorodoje panaudotas pigus aukščiausio lygio domenas, kuriuos naudoja duomenų vagys, atkreipkite dėmesį į naudojamą aukščiausio lygio domeną!', Marker: 'Pigus aukščiausio lygio domenas'},
+            {ID: 'Many_TLD', Name: 'TLD skaičius', Description: 'Aptikta daugiau nei vienas aukščiausio lygio domenas, kas gali reikšti potencialią duomenų viliojimo ataką!', Marker: 'Keletas aukščiausio lygio domenų'},
+            {ID: 'At_Sign', Name: '@ simbolis', Description: 'Aptiktas neįprastas simbolis URL, kuris naudojamas nukreipti į kitą svetainę, esančią po @ simbolio!', Marker: 'Neįprastas simbolis @'},
             {ID: 'Dot_Dash', Name: 'Neįprasti simboliai', Description: 'URL pasikartojantys simboliai "." bei "-" gali reikšti, jog tai apgvaikų svetainė!'},
-            {ID: 'SSL_Certificate', Name: 'SSL sertifikatas', Description: 'Neaptikas saugumo sertifikatas, kuris užtikrina saugų duomenų perdavimą!'},
-            {ID: 'IP_Adress', Name: 'IP adresas', Description: 'URL esantis IP adresas gali reikšti potencialią duomenų ataką!', Marker: 'IP adresas'},
-            {ID: 'Suffix_Prefix', Name: 'Žodžių pridėjimas į URL', Description: 'Pridėtiniai žodžiai pakeičia URL, atkreipkite dėmesį į URL, ar jis neiškraipytas!'}
+            {ID: 'SSL_Certificate', Name: 'SSL sertifikatas', Description: 'Neaptiktas saugumo sertifikatas, kuris užtikrina saugų duomenų perdavimą!'},
+            {ID: 'IP_Adress', Name: 'IP adresas', Description: 'URL esantis IP adresas gali reikšti potencialią duomenų viliojimo ataką!', Marker: 'IP adresas'},
+            {ID: 'Suffix_Prefix', Name: 'Žodžių pridėjimas į URL', Description: 'Pridėtiniai žodžiai pakeičia URL, atkreipkite dėmesį į URL, ar jis neiškraipytas!', Marker: 'Pridėtinis žodis'}
         ];
 
         reasonData.forEach(reason => {
@@ -84,14 +86,14 @@ function insert_reason_data(){
             request.onsuccess = resolve;
         });
 
-        transactions.oncomplete = () =>{
+        transactions.oncomplete = () => {
             console.log('Phishing reason data inserted successfully');
         };
     });
 }
 
 // Populating PhishingSample table with data
-function insert_sample_data(){
+function insert_sample_data() {
     return new Promise((resolve, reject) => {
         const transactions = database.transaction(['PhishingSample'], 'readwrite');
 
@@ -103,11 +105,18 @@ function insert_sample_data(){
             {ID: 'Letter3', Reason_ID:'Plagiarised_Letter', URL: 'www.po1icija.lt'},
             {ID: 'Letter4', Reason_ID:'Plagiarised_Letter', URL: 'www.sw3dbank.lt'},
             {ID: 'Length1', Reason_ID:'URL_Length', Sample: 'Atkreipkite dėmesį į URL ilgį, ar URL nėra iškraipytas'},
-            {ID: 'NativeD1', Reason_ID:'Native_Domain', Sample: 'Atkreipkite dėmesį ar bandote patekti į nuorodą su šiuo domenu'},
-            {ID: 'CheapD1', Reason_ID:'Cheap_Domain', URL: 'www.dpd.com.xyz'},
-            {ID: 'CheapD2', Reason_ID:'Cheap_Domain', URL: 'www.netflix.com.info'},
-            {ID: 'CheapD3', Reason_ID:'Cheap_Domain', URL: 'www.emokymai.online'},
-            {ID: 'CheapD4', Reason_ID:'Cheap_Domain', URL: 'www.youtube.pw'},
+            {ID: 'Shortener1', Reason_ID:'URL_Shortener', URL: 'www.tinyurl.com/urlShortener'},
+            {ID: 'Shortener2', Reason_ID:'URL_Shortener', URL: 'www.qrco.de/urlShortener'},
+            {ID: 'Shortener3', Reason_ID:'URL_Shortener', URL: 'www.shorturl.at/urlShortener'},
+            {ID: 'Shortener4', Reason_ID:'URL_Shortener', URL: 'www.bit.ly/urlShortener'},
+            {ID: 'NativeD1', Reason_ID:'Native_TLD', Sample: 'Atkreipkite dėmesį ar bandote patekti į nuorodą su šiuo domenu'},
+            {ID: 'CheapD1', Reason_ID:'Cheap_TLD', URL: 'www.dpd.xyz'},
+            {ID: 'CheapD2', Reason_ID:'Cheap_TLD', URL: 'www.netflix.info'},
+            {ID: 'CheapD3', Reason_ID:'Cheap_TLD', URL: 'www.emokymai.online'},
+            {ID: 'CheapD4', Reason_ID:'Cheap_TLD', URL: 'www.youtube.pw'},
+            {ID: 'ManyT1', Reason_ID:'Many_TLD', URL: 'www.itella.lt.com'},
+            {ID: 'ManyT2', Reason_ID:'Many_TLD', URL: 'www.lpexpress.lt.en'},
+            {ID: 'ManyT3', Reason_ID:'Many_TLD', URL: 'www.amazon.de.cn'},
             {ID: 'At1', Reason_ID:'At_Sign', URL: 'www.seb.lt@netikra.lt'},
             {ID: 'At2', Reason_ID:'At_Sign', URL: 'www.vu.lt@kitas.lt'},
             {ID: 'At3', Reason_ID:'At_Sign', URL: 'www.policija.lt@moketi-bauda.lt'},
@@ -130,7 +139,7 @@ function insert_sample_data(){
             request.onsuccess = resolve;
         });
 
-        transactions.oncomplete = () =>{
+        transactions.oncomplete = () => {
             console.log('Phishing sample data inserted successfully');
         };
     });
