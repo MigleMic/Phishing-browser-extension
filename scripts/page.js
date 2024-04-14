@@ -1,5 +1,7 @@
 //Script file for modifying information, looking for phishing signs
 import { create_database, getMarkerByID } from "./databaseCreation.js";
+import { modifyUrlPart, modifyUrlSymbol, checkWebsiteExistence } from "./additionalUtils.js";
+import { getMessage } from "./markerMessageAddition.js";
 
 create_database();
 
@@ -106,6 +108,7 @@ async function checkIPAdress(url) {
         var index = modifiedUrl.indexOf(ipv4Match[0]);
         var length = index + ipv4Match.length;
         var dIndex = dataIndex;
+
         modifiedUrl = modifyUrlPart(modifiedUrl, index, length, dIndex);
 
         document.getElementById('url-display').innerHTML = modifiedUrl;
@@ -115,13 +118,18 @@ async function checkIPAdress(url) {
 
         getMessage(element, dIndex, marker);
         reasons.push('IP_Adress');
+        
+        dataIndex++;
         foundValue = true;
     }
 
     const ipv6Match = modifiedUrl.match(ipv6Regex);
     if (ipv6Match) {
         var index = modifiedUrl.indexOf(ipv6Match[0]);
-        modifiedUrl = modifyUrlPart(modifiedUrl, index, ipv6Match.length);
+        var length = index + ipv6Match.length;
+        var dIndex = dataIndex;
+
+        modifiedUrl = modifyUrlPart(modifiedUrl, index, length, dIndex);
 
         document.getElementById('url-display').innerHTML = modifiedUrl;
 
@@ -130,6 +138,8 @@ async function checkIPAdress(url) {
 
         getMessage(element, dataIndex, marker);
         reasons.push('IP_Adress');
+
+        dataIndex++;
         foundValue = true;
     }
 
@@ -164,8 +174,10 @@ async function checkPlagiarisedLetter() {
 
                         getMessage(element, dIndex, marker);
 
-                        foundValue = true;
                         reasons.push('Plagiarised_Letter');
+                        foundValue = true;
+
+                        dataIndex++;
                         break;
                     }
                 }
@@ -209,8 +221,10 @@ async function checkUrlShorteners() {
 
             getMessage(element, dIndex, marker);
 
-            foundValue = true;
             reasons.push('URL_Shortener');
+            foundValue = true;
+            
+            dataIndex++;
             break;
         }
     }
@@ -241,8 +255,10 @@ async function checkCheapTLD(url) {
 
             getMessage(element, dIndex, marker);
 
-            foundValue = true;
             reasons.push('Cheap_TLD');
+            foundValue = true;
+            
+            dataIndex++;
             break;
         }
     }
@@ -283,6 +299,8 @@ async function checkNativeTLD(url) {
                 getMessage(element, dIndex, marker);
                 reasons.push('Native_TLD');
                 foundValue = true;
+
+                dataIndex++;
             }
         }
     }
@@ -335,6 +353,8 @@ async function checkTLDNumber(url) {
                 console.log('IDEJO KARTA');
                 markerAdded = true;
             }
+
+            dataIndex++;
         }
         reasons.push('Many_TLD');
         foundValue = true;
@@ -358,10 +378,12 @@ async function checkAtSymbol() {
         const element = document.getElementById('url-display');
         const marker = await getMarkerByID('At_Sign');
 
-        console.log(marker);
         getMessage(element, dIndex, marker);
+
         reasons.push('At_Sign');
         foundValue = true;
+
+        dataIndex++;
     }
 
     return foundValue;
@@ -399,7 +421,10 @@ function checkDotsDashes() {
             var dIndex = dataIndex;
             modifiedUrl = modifyUrlSymbol(modifiedUrl, dash + count, dIndex);
             count += dangerousSymbolStart.length + dangerousSymbolEnd.length;
+
             document.getElementById('url-display').innerHTML = modifiedUrl;
+
+            dataIndex++;
         }
         reasons.push('Dot_Dash');
     }
@@ -412,7 +437,10 @@ function checkDotsDashes() {
             var dIndex = dataIndex;
             modifiedUrl = modifyUrlSymbol(modifiedUrl, dot + count, dIndex);
             count += dangerousSymbolStart.length + dangerousSymbolEnd.length;
+
             document.getElementById('url-display').innerHTML = modifiedUrl;
+
+            dataIndex++;
         }
         reasons.push('Dot_Dash');
     }
@@ -446,6 +474,8 @@ async function checkPrefixSufix(url) {
             getMessage(element, dIndex, marker);
             reasons.push('Suffix_Prefix');
             foundValue = true;
+
+            dataIndex++;
             break;
         }
     }
@@ -453,96 +483,9 @@ async function checkPrefixSufix(url) {
     return foundValue;
 }
 
-// Highlightening dangerous parts of URL
-function modifyUrlPart(url, index, length, dIndex) {
-    const span = `<span class="dangerousSymbol" dataIndex="${dIndex}">`;
-    dataIndex++;
-    return url.substring(0, index) +  span + url.substring(index, index + length) + '</span>' + url.substring(index + length);
-}
-
-// Highlightening dangerous symbol of URL
-function modifyUrlSymbol(url, index, dIndex){
-    const span = `<span class="dangerousSymbol" dataIndex="${dIndex}">`;
-    dataIndex++;
-    return url.substring(0, index) + span + url.charAt(index) + '</span>' + url.substring(index + 1);
-}
-
-// Helper function to check if given website exists
-async function checkWebsiteExistence(url){
-    // try{
-    //     const response = await fetch(url);
-    //     return response.ok;
-    //     }
-    // catch (error){
-    //     console.error('Error checking existence', error.message || error.toString());
-    // }
-    try {
-        const response = await fetch(url, { method: 'HEAD' });
-
-        if (response.ok) {
-            console.log('URL exists:', url);
-            return true;
-        } else {
-            console.log('URL does not exist:', url);
-            return false;
-        }
-    } catch (error) {
-        console.error('Error checking URL: ', url);
-        return false;
-    }
-
-}
-
 function logMessage(message){
     const logContainer = document.getElementById('log-container');
     const logMessage = document.createElement('div');
     logMessage.textContent = message;
     logContainer.appendChild(logMessage);
-}
-
-function getMessage(element, dIndex, marker){
-    const spanElements = element.querySelectorAll('span.dangerousSymbol');
-
-    spanElements.forEach(spanElement => {
-        const dataIndexElement = parseInt(spanElement.getAttribute('dataIndex'));
-
-        if (dIndex === dataIndexElement){
-            const spanBox = spanElement.getBoundingClientRect();
-
-            var x, y;
-            if (dIndex % 2 === 1) {
-                x = spanBox.left + 10;
-                y = spanBox.top - 30;
-            } else {
-                x = spanBox.left - 10;
-                y = spanBox.top + 30;
-            }
-            
-
-            showMessage(x, y, marker);
-        }
-    });
-}
-
-function showMessage(x, y, marker){
-    const messageBox = document.createElement('div');
-    messageBox.classList.add('message-box');
-
-    messageBox.style.left = `${x}px`;
-    messageBox.style.top = `${y}px`;
-
-    messageBox.style.display = 'block';
-    messageBox.textContent = marker;
-    var boxWidth = marker.length * 7.5;
-    messageBox.style.width = `${boxWidth}px`;
-
-    const button = document.createElement('button');
-    button.textContent = 'x';
-    button.classList.add('close-button');
-    button.addEventListener('click', () => {
-        messageBox.remove();
-    });
-
-    messageBox.appendChild(button);
-    document.body.appendChild(messageBox);
 }
