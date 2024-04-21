@@ -1,5 +1,8 @@
 // Checks if the URL changes
+
 let previousUrl = '';
+let showUrl = '';
+let panelWindowId;
 
 // Checking if new tab URL is a new URL
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -37,8 +40,9 @@ function checkUrl(url) {
             const activeTab = tabs[0];  
 
             if (!url.startsWith(chrome.runtime.getURL("")) && !excludeFromUrlChecking(url)) {
-                openPanelWindow(url);
-            } 
+                    showUrl = url;
+                    openPanelWindow(url);
+            }
         });
     }
 }
@@ -59,17 +63,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'getURL') {
         const url = message.url;
         
-        if (url) {
-            console.log('URL ', url);
-            sendResponse({ success: true, url: url }); 
+        if (url === showUrl) {
+            sendResponse({ success: true, url: showUrl }); 
         }
-        return true;
     }
+
+    else if (message.action === 'isPhishing') {
+        phishing = message.isPhishing;
+        console.log(phishing);
+        if (phishing) {
+            // displayPanel();
+            console.log('TIKRINAM PHISHING ', phishing);
+        }
+        if (phishing === false) {
+            console.log('Norim uzdaryti',  panelWindowId);
+            closePanelWindow();
+        }
+        sendResponse({ success: true});
+    }  
+    return true;
 });
 
-// Open a popup window of an extension
 function openPanelWindow(url) {
-    const encodedURL = encodeURIComponent(url);   
+        const encodedURL = encodeURIComponent(url);   
 
     //creates a panel html
     chrome.windows.create({
@@ -79,5 +95,18 @@ function openPanelWindow(url) {
         top: 10,
         width: 850,
         height: 800
-    });
+    }, window => {
+        panelWindowId = window.id;
+        console.log(panelWindowId);
+    }); 
+
+    console.log(panelWindowId);
+}
+
+function closePanelWindow() {
+    console.log(panelWindowId);
+    if (panelWindowId) {
+        chrome.windows.remove(panelWindowId);
+        panelWindowId = null;
+    }
 }

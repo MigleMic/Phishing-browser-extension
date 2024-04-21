@@ -19,24 +19,24 @@ export let modifiedUrl = '';
 export let dataIndex = 1;
 
 // Displaying the URL of the current active tab
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
     const urlParams = new URLSearchParams(window.location.search);
     const url = urlParams.get('url');
 
     console.log('Sending message');
-    // Send message to background script with the URL
     chrome.runtime.sendMessage({ action: 'getURL', url: url }, async (response) => {
         console.log('Getting response');
 
-        if (response.success){
+        if (response && response.success){
             const currentUrl = url;
             modifiedUrl = currentUrl;
 
-            const isPhishing = await checkPhishingSigns();
+            isPhishing = await checkPhishingSigns();
             if (isPhishing)
             {
                 document.getElementById('url-display').innerHTML = modifiedUrl;
             } 
+            chrome.runtime.sendMessage({ action: 'isPhishing', isPhishing: isPhishing, url : currentUrl}); 
         }
     });
 });
