@@ -49,6 +49,7 @@ function showMessage(x, y, marker){
     const button = document.createElement('button');
     button.textContent = 'x';
     button.classList.add('close-button');
+    
     button.addEventListener('click', () => {
         messageBox.remove();
     });

@@ -1,3 +1,7 @@
+// Creating database and populating it
+
+import { insertToLoggerTable } from "./insertDatabaseInformation.js";
+
 let database = null;
 
 // Database creation
@@ -5,13 +9,21 @@ export function create_database() {
     const request = indexedDB.open('PhishingDatabase');
 
     request.onerror = function (event) {
-        console.log('Problem opening database:', event.target.error);
+        insertToLoggerTable(event.target.error, 'Problem opening database');
     }
 
     request.onupgradeneeded = function (event) {
         database = event.target.result;
 
-        //Table PhishingReason
+        // Table ExtensionLogger
+        const logger = database.createObjectStore('ExtensionLogger', {keyPath: 'ID'});
+        
+        // The structure of ExtensionLogger
+        logger.createIndex('TimestampIndex', 'Timestamp', {unique: false});
+        logger.createIndex('ErrorIndex', 'Error', {unique: false});
+        logger.createIndex('MessageIndex', 'Message', {unique: false});
+
+        // Table PhishingReason
         const phishingReason = database.createObjectStore('PhishingReason', {keyPath: 'ID'});
 
         //The structure of PhishingReason
@@ -19,42 +31,37 @@ export function create_database() {
         phishingReason.createIndex('Description', 'Description', {unique: false});
         phishingReason.createIndex('MarkerIndex', 'Marker', {unique: true});
 
-        //Table PhishingSample
+        // Table PhishingSample
         const phishingSample = database.createObjectStore('PhishingSample', {keyPath: 'ID'});
 
-        //The structure of PhishingSample
+        // The structure of PhishingSample
         phishingSample.createIndex('ReasonID', 'Reason_ID', {unique: false});
         phishingSample.createIndex('URLIndex', 'URL', {unique: true});
         phishingSample.createIndex('SampleIndex', 'Sample', {unique: true});
 
-        //Objects stores are created
+        // Objects stores are created
+        logger.transaction.oncomplete = function (event) {
+            insertToLoggerTable('', 'Logger object store is created');
+        }
+
         phishingReason.transaction.oncomplete = function (event) {
-            console.log('PhishingReason object store is created');
+            insertToLoggerTable('', 'PhishingReason object store is created');
         }
 
         phishingSample.transaction.oncomplete = function (event) {
-            console.log('PhishingSample object store is created');
+            insertToLoggerTable('PhishingSample object store is created');
         }
 
-        const logger = database.createObjectStore('ExtensionLogger', {keyPath: 'ID'});
-        
-        logger.createIndex('TimestampIndex', 'Timestamp', {unique: false});
-        logger.createIndex('ErrorIndex', 'Error', {unique: false});
-        logger.createIndex('MessageIndex', 'Message', {unique: false});
-
-        logger.transaction.oncomplete = function (event) {
-            console.log('Logger object store is created');
-        }
     }
 
     request.onsuccess = function (event) {
         database = event.target.result;
-        console.log('Database opened');
+        insertToLoggerTable('', 'Database opened');
 
         checkAndInsertData(database);
 
         database.onerror = function (event) {
-            console.log('Failed to open the database', event.target.error);
+            insertToLoggerTable(event.target.error, 'Failed to open the database');
         }
     }
 }
@@ -87,7 +94,7 @@ function insert_reason_data() {
         });
 
         transactions.oncomplete = () => {
-            console.log('Phishing reason data inserted successfully');
+            insertToLoggerTable('', 'Phishing reason data inserted successfully');
         };
     });
 }
@@ -140,7 +147,7 @@ function insert_sample_data() {
         });
 
         transactions.oncomplete = () => {
-            console.log('Phishing sample data inserted successfully');
+            insertToLoggerTable('', 'Phishing sample data inserted successfully');
         };
     });
 }
@@ -160,7 +167,7 @@ function checkAndInsertData(database) {
                 insert_sample_data();
             });
         } else {
-            console.log('Database already contains data, skipping insertion');
+            insertToLoggerTable('', 'Database already contains data, skipping insertion');
         }
     };
 }

@@ -12,6 +12,7 @@ import { checkAtSymbol } from "./phishingSigns/atSymbolReason.js";
 import { checkDotsDashes } from "./phishingSigns/dotAndDashReason.js";
 import { checkSSLCertificate } from "./phishingSigns/sslCertificateReason.js";
 import { checkPrefixSufix } from "./phishingSigns/prefixSufixReason.js";
+import { insertToLoggerTable } from "./Utils/insertDatabaseInformation.js";
 
 create_database();
 
@@ -23,10 +24,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     const urlParams = new URLSearchParams(window.location.search);
     const url = urlParams.get('url');
 
-    console.log('Sending message');
+    insertToLoggerTable('', 'Sending URL to background');
     chrome.runtime.sendMessage({ action: 'getURL', url: url }, async (response) => {
-        console.log('Getting response');
-
+        insertToLoggerTable('', 'Got a response from background');
         if (response && response.success){
             const currentUrl = url;
             modifiedUrl = currentUrl;

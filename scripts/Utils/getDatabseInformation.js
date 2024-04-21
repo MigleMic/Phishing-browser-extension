@@ -1,5 +1,8 @@
 // Extract information from database
 
+import { insertToLoggerTable } from "./insertDatabaseInformation.js";
+
+
 export async function getMarkerByID(id) {
     return new Promise((resolve, reject) => {
         var request = window.indexedDB.open('PhishingDatabase', 1);
@@ -19,16 +22,19 @@ export async function getMarkerByID(id) {
                     resolve(markerValue);
                 } else {
                     reject('No data found for ID: ' + id);
+                    insertToLoggerTable('', 'No data found for ID: ' + id);
                 }
             };
 
             getRequest.onerror = function(event) {
-                reject('Error getting data: ' + event.target.error);
+                reject(event.target.error);
+                insertToLoggerTable(event.target.error, 'Error getting data');
             };
         };
 
         request.onerror = function(event) {
-            reject('Error opening database: ' + event.target.error);
+            reject(event.target.error);
+            insertToLoggerTable(event.target.error, 'Error opening database');
         };
     });
 }
