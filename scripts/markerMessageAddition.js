@@ -1,3 +1,16 @@
+import { getMarkerByID } from "./databaseCreation.js";
+import { dataIndex, updateDataIndex } from "./page.js";
+
+export async function callMarkerMessage(markerID, modifiedUrl, dIndex) {
+    document.getElementById('url-display').innerHTML = modifiedUrl;
+
+    const element = document.getElementById('url-display');
+    const marker = await getMarkerByID(markerID);
+
+    getMessage(element, dIndex, marker);
+    updateDataIndex();
+}
+
 export function getMessage(element, dIndex, marker){
     const spanElements = element.querySelectorAll('span.dangerousSymbol');
 
@@ -16,7 +29,6 @@ export function getMessage(element, dIndex, marker){
                 y = spanBox.top + 30;
             }
             
-
             showMessage(x, y, marker);
         }
     });
