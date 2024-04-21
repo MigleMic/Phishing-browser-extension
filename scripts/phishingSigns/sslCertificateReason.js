@@ -6,7 +6,12 @@ import { modifiedUrl } from "../page.js";
 export function checkSSLCertificate() {
     const sslCertificate = 'https://';
 
-    reasons.push('SSL_Certificate');
+    var foundValue = false;
 
-    return modifiedUrl.startsWith(sslCertificate);
+    if (modifiedUrl.startsWith(sslCertificate)) {
+        reasons.push('SSL_Certificate');
+        foundValue = true;
+    }
+    
+    return foundValue;
 }

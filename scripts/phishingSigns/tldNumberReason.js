@@ -7,11 +7,21 @@ import { callMarkerMessage } from "../markerMessageAddition.js";
 export async function checkTLDNumber(url) {
     var foundValue = false;
 
+    const ignorePatterns = [/^https?:\/\//, /^www\./];
+
+    let splitUrl = url;
+    ignorePatterns.forEach(pattern => {
+        splitUrl = splitUrl.replace(pattern, '');
+    });
+
+    splitUrl = splitUrl.split('/')[0];
+
     const urlObject = new URL(url);
 
     const hostname = urlObject.hostname;
-    const splitHostname = hostname.startsWith('www.') ? hostname.substring(4).split('.') : hostname.split('.');
 
+    const splitHostname = hostname.split('.');
+    
     // No TLD found
     if (splitHostname.length <= 1) {
         return foundValue;
@@ -31,7 +41,7 @@ export async function checkTLDNumber(url) {
     }
 
     if (numberOfTLDs > 1) {
-        if (!reasons.includes('IP_Address')) {
+        // if (!reasons.includes('IP_Address')) {
             let markerAdded = false;
 
             for (const tld of tlds) {
@@ -51,7 +61,7 @@ export async function checkTLDNumber(url) {
             reasons.push('Many_TLD');
             foundValue = true;
         }
-    }
+    // }
 
     return foundValue;
 }
