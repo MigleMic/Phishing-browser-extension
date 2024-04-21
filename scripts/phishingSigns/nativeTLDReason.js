@@ -1,9 +1,9 @@
 // Reason to see if URL uses not native TLD
 
 import { reasons } from "./phishingReasonArray.js";
-import { checkWebsiteExistence } from "../additionalUtils.js";
+import { checkWebsiteExistence } from "../Utils/additionalUtils.js";
 import { modifiedUrl, dataIndex, modifyUrlPart, updateUrl } from "../page.js";
-import { callMarkerMessage } from "../markerMessageAddition.js";
+import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 
 export async function checkNativeTLD(url) {
     let nativeTLD = 'lt';

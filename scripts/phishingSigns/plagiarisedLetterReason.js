@@ -2,8 +2,8 @@
 
 import { reasons } from "./phishingReasonArray.js";
 import { modifiedUrl, dataIndex, modifyUrlSymbol, updateUrl } from "../page.js";
-import { checkWebsiteExistence } from "../additionalUtils.js";
-import { callMarkerMessage } from "../markerMessageAddition.js";
+import { checkWebsiteExistence } from "../Utils/additionalUtils.js";
+import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 
 export async function checkPlagiarisedLetter() {
     const plagiarisedLetters = [0, 1, 3];

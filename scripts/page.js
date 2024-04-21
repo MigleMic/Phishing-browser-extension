@@ -1,5 +1,5 @@
 //Script file for modifying information, looking for phishing signs
-import { create_database } from "./databaseCreation.js";
+import { create_database } from "./Utils/databaseCreation.js";
 
 import { checkIPAddress } from "./phishingSigns/ipAddressReason.js";
 import { checkPlagiarisedLetter } from "./phishingSigns/plagiarisedLetterReason.js";
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const currentUrl = url;
             modifiedUrl = currentUrl;
 
-            isPhishing = await checkPhishingSigns();
+            var isPhishing = await checkPhishingSigns();
             if (isPhishing)
             {
                 document.getElementById('url-display').innerHTML = modifiedUrl;

@@ -1,5 +1,5 @@
-import { getMarkerByID } from "./databaseCreation.js";
-import { dataIndex, updateDataIndex } from "./page.js";
+import { getMarkerByID } from "../Utils/getDatabseInformation.js";
+import { updateDataIndex } from "../page.js";
 
 export async function callMarkerMessage(markerID, modifiedUrl, dIndex) {
     document.getElementById('url-display').innerHTML = modifiedUrl;

@@ -1,7 +1,7 @@
 // Reason to check if URL does not have cheap TLD
 
 import { dataIndex, modifiedUrl, updateUrl, modifyUrlPart } from "../page.js";
-import { callMarkerMessage } from "../markerMessageAddition.js";
+import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 import { reasons } from "./phishingReasonArray.js";
 
 export async function checkCheapTLD(url) {

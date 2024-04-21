@@ -2,7 +2,7 @@
 
 import { modifiedUrl, dataIndex, updateUrl, modifyUrlSymbol } from "../page.js";
 import { reasons } from "./phishingReasonArray.js";
-import { callMarkerMessage } from "../markerMessageAddition.js";
+import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 
 export async function checkAtSymbol() {
     const atSymbol = '@';

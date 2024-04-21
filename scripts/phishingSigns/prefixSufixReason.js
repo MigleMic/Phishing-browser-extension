@@ -1,7 +1,7 @@
 // Reason to check if URL has additional prefix and sufix
 
 import { modifiedUrl, dataIndex, modifyUrlPart, updateUrl } from "../page.js";
-import { callMarkerMessage } from "../markerMessageAddition.js";
+import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 import { reasons } from "./phishingReasonArray.js";
 
 export async function checkPrefixSufix(url) {
