@@ -2,6 +2,7 @@
 
 import { dataIndex, modifiedUrl, updateUrl, modifyUrlPart } from "../page.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
+import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
 import { reasons } from "./phishingReasonArray.js";
 
 export async function checkCheapTLD(url) {
@@ -25,6 +26,7 @@ export async function checkCheapTLD(url) {
             reasons.push('Cheap_TLD');
 
             await callMarkerMessage('Cheap_TLD', modifiedUrl, dIndex);
+            await callCollapsible('Cheap_TLD');
             
             foundValue = true;
             break;

@@ -3,6 +3,7 @@
 import { reasons } from "./phishingReasonArray.js";
 import { modifiedUrl, dataIndex, modifyUrlPart, updateUrl } from "../page.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
+import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
 
 export async function checkIPAddress(url) {
     var foundValue = false;
@@ -44,6 +45,10 @@ export async function checkIPAddress(url) {
         await callMarkerMessage('IP_Address', modifiedUrl, dIndex);
 
         foundValue = true;
+    }
+
+    if (foundValue) {
+        await callCollapsible('IP_Address');
     }
 
     return foundValue;

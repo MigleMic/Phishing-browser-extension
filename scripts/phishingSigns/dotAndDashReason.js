@@ -1,8 +1,9 @@
 // Reason to check if URL does not have more dots and dashes than is considered safe
 import { modifiedUrl, dataIndex, modifyUrlSymbol, updateUrl, modifyUrl } from "../page.js";
+import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
 import { reasons } from "./phishingReasonArray.js";
 
-export function checkDotsDashes() {
+export async function checkDotsDashes() {
     var foundValue = false;
 
     let dashCount = 0;
@@ -60,6 +61,10 @@ export function checkDotsDashes() {
             modifyUrl(url2);
         }
         reasons.push('Dot_Dash');
+    }
+
+    if (foundValue) {
+        await callCollapsible('Dot_Dash');
     }
 
     return foundValue;

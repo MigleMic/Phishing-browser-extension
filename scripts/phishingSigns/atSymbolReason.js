@@ -3,6 +3,7 @@
 import { modifiedUrl, dataIndex, updateUrl, modifyUrlSymbol } from "../page.js";
 import { reasons } from "./phishingReasonArray.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
+import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
 
 export async function checkAtSymbol() {
     const atSymbol = '@';
@@ -18,6 +19,7 @@ export async function checkAtSymbol() {
         updateUrl(url2);
 
         await callMarkerMessage('At_Sign', modifiedUrl, dIndex);
+        await callCollapsible('At_Sign');
         
         reasons.push('At_Sign');
         foundValue = true;

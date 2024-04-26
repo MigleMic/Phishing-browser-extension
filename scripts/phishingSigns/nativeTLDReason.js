@@ -4,6 +4,7 @@ import { reasons } from "./phishingReasonArray.js";
 import { checkWebsiteExistence } from "../Utils/additionalUtils.js";
 import { modifiedUrl, dataIndex, modifyUrlPart, updateUrl } from "../page.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
+import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
 
 export async function checkNativeTLD(url) {
     let nativeTLD = 'lt';
@@ -35,6 +36,7 @@ export async function checkNativeTLD(url) {
                 reasons.push('Native_TLD');
 
                 await callMarkerMessage('Native_TLD', modifiedUrl, dIndex);
+                await callCollapsible('Native_TLD');
                 
                 foundValue = true;
             }

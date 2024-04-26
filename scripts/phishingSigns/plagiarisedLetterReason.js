@@ -4,6 +4,7 @@ import { reasons } from "./phishingReasonArray.js";
 import { modifiedUrl, dataIndex, modifyUrlSymbol, updateUrl } from "../page.js";
 import { checkWebsiteExistence } from "../Utils/additionalUtils.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
+import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
 
 export async function checkPlagiarisedLetter() {
     const plagiarisedLetters = [0, 1, 3];
@@ -33,6 +34,7 @@ export async function checkPlagiarisedLetter() {
                         reasons.push('Plagiarised_Letter');
 
                         await callMarkerMessage('Plagiarised_Letter', modifiedUrl, dIndex);
+                        await callCollapsible('Plagiarised_Letter');
 
                         foundValue = true;
                         break;

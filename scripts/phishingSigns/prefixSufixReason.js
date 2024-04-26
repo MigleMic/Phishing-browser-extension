@@ -1,6 +1,7 @@
 // Reason to check if URL has additional prefix and sufix
 
 import { modifiedUrl, dataIndex, modifyUrlPart, updateUrl } from "../page.js";
+import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 import { reasons } from "./phishingReasonArray.js";
 
@@ -19,6 +20,7 @@ export async function checkPrefixSufix(url) {
             updateUrl(url2);
 
             await callMarkerMessage('Suffix_Prefix', modifiedUrl, dIndex);
+            await callCollapsible('Suffix_Prefix');
             
             reasons.push('Suffix_Prefix');
             

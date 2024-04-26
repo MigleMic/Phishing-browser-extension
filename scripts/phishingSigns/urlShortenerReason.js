@@ -3,6 +3,7 @@
 import { modifiedUrl, dataIndex, updateUrl, modifyUrlPart } from "../page.js";
 import { reasons } from "./phishingReasonArray.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
+import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
 
 
 export async function checkUrlShorteners() {
@@ -21,6 +22,7 @@ export async function checkUrlShorteners() {
             reasons.push('URL_Shortener');
 
             await callMarkerMessage('URL_Shortener', modifiedUrl, dIndex);
+            await callCollapsible('URL_Shortener');
 
             foundValue = true;
             break;

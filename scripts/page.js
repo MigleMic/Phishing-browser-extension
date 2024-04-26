@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     insertToLoggerTable('', 'Sending URL to background');
     chrome.runtime.sendMessage({ action: 'getURL', url: url }, async (response) => {
         insertToLoggerTable('', 'Got a response from background');
+        console.log(url);
         if (response && response.success){
             const currentUrl = url;
             modifiedUrl = currentUrl;
@@ -34,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             var isPhishing = await checkPhishingSigns();
             if (isPhishing)
             {
-                document.getElementById('url-display').innerHTML = modifiedUrl;
+                document.getElementById('url-display').innerHTML = modifiedUrl;             
             } 
             chrome.runtime.sendMessage({ action: 'isPhishing', isPhishing: isPhishing, url : currentUrl}); 
         }
@@ -57,7 +58,7 @@ async function checkPhishingSigns() {
         phishing = true;
     }
 
-    if (checkLongUrl(url)) {
+    if (await checkLongUrl(url)) {
         logMessage('Rastas ilgas URL');
         phishing = true;
     }
@@ -87,12 +88,12 @@ async function checkPhishingSigns() {
         phishing = true;
     }
 
-    if (checkDotsDashes()) {
+    if (await checkDotsDashes()) {
         logMessage('Rastas didelis brūkšnelių ir taškų skaičius');
         phishing = true;
     }
 
-    if (!checkSSLCertificate(url)) {
+    if (await checkSSLCertificate(url)) {
         logMessage('SSL Sertifikatas nerastas');
         phishing = true;
     }

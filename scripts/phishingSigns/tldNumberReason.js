@@ -3,6 +3,7 @@
 import { modifiedUrl, dataIndex, updateUrl, modifyUrlPart } from "../page.js";
 import { reasons } from "./phishingReasonArray.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
+import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
 
 export async function checkTLDNumber(url) {
     var foundValue = false;
@@ -41,7 +42,6 @@ export async function checkTLDNumber(url) {
     }
 
     if (numberOfTLDs > 1) {
-        // if (!reasons.includes('IP_Address')) {
             let markerAdded = false;
 
             for (const tld of tlds) {
@@ -54,14 +54,13 @@ export async function checkTLDNumber(url) {
 
                 if (!markerAdded) {
                     await callMarkerMessage('Many_TLD', modifiedUrl, dIndex);
-
+                    await callCollapsible('Many_TLD');
                     markerAdded = true;
                 }
             }
             reasons.push('Many_TLD');
             foundValue = true;
         }
-    // }
 
     return foundValue;
 }

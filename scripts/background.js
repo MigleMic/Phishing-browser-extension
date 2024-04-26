@@ -2,7 +2,8 @@
 
 let previousUrl = '';
 let showUrl = '';
-let panelWindowId;
+let panelWindowId = null;
+let activeTabId = null;
 
 // Checking if new tab URL is a new URL
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -37,11 +38,13 @@ function checkUrl(url) {
         }
 
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const activeTab = tabs[0];  
+            activeTabId = tabs[0].id;  
 
             if (!url.startsWith(chrome.runtime.getURL("")) && !excludeFromUrlChecking(url)) {
-                    showUrl = url;
-                    openPanelWindow(url);
+                    if (!panelOpened()) {
+                        showUrl = url;
+                        openPanelWindow(url);
+                    }
             }
         });
     }
@@ -66,14 +69,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (url === showUrl) {
             sendResponse({ success: true, url: showUrl }); 
         }
-    }
+    } 
 
     else if (message.action === 'isPhishing') {
         phishing = message.isPhishing;
         console.log(phishing);
         if (phishing) {
-            // displayPanel();
+            // openPanelWindow(showUrl);
             console.log('TIKRINAM PHISHING ', phishing);
+            // chrome.tabs.update(activeTabId, {url: 'chrome://newtab'});
         }
         if (phishing === false) {
             console.log('Norim uzdaryti',  panelWindowId);
@@ -85,7 +89,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 function openPanelWindow(url) {
-        const encodedURL = encodeURIComponent(url);   
+    const encodedURL = encodeURIComponent(url);   
 
     //creates a panel html
     chrome.windows.create({
@@ -97,10 +101,7 @@ function openPanelWindow(url) {
         height: 800
     }, window => {
         panelWindowId = window.id;
-        console.log(panelWindowId);
     }); 
-
-    console.log(panelWindowId);
 }
 
 function closePanelWindow() {
@@ -109,4 +110,17 @@ function closePanelWindow() {
         chrome.windows.remove(panelWindowId);
         panelWindowId = null;
     }
+}
+
+function panelOpened() {
+    if (panelWindowId !== null) {
+        chrome.windows.get(panelWindowId, function(window) {
+            if (!window) {
+                return false; 
+            } else {
+                return true;
+            }
+        });
+    }
+    return false;
 }
