@@ -4,6 +4,7 @@ let previousUrl = '';
 let showUrl = '';
 let panelWindowId = null;
 let activeTabId = null;
+let panelOpen = false;
 
 // Checking if new tab URL is a new URL
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -36,17 +37,18 @@ function checkUrl(url) {
         if (url !== previousUrl) {
             previousUrl = url;
         }
-
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            activeTabId = tabs[0].id;  
-
-            if (!url.startsWith(chrome.runtime.getURL("")) && !excludeFromUrlChecking(url)) {
-                    if (!panelOpened()) {
-                        showUrl = url;
-                        openPanelWindow(url);
+        if (!panelOpen) {
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                activeTabId = tabs[0].id;  
+    
+                if (!url.startsWith(chrome.runtime.getURL("")) && !excludeFromUrlChecking(url)) {
+                    if (panelWindowId === null) {
+                            showUrl = url;
+                            openPanelWindow(url);
                     }
-            }
-        });
+                }
+            });
+        }
     }
 }
 
@@ -101,7 +103,16 @@ function openPanelWindow(url) {
     }, window => {
         panelWindowId = window.id;
     }); 
+
+    panelOpen = true;
 }
+
+chrome.windows.onRemoved.addListener(windowId => {
+    if (windowId === panelWindowId) {
+        panelWindowId = null;
+        panelOpen = false;
+    }
+});
 
 function closePanelWindow() {
     console.log(panelWindowId);
@@ -109,17 +120,4 @@ function closePanelWindow() {
         chrome.windows.remove(panelWindowId);
         panelWindowId = null;
     }
-}
-
-function panelOpened() {
-    if (panelWindowId !== null) {
-        chrome.windows.get(panelWindowId, function(window) {
-            if (!window) {
-                return false; 
-            } else {
-                return true;
-            }
-        });
-    }
-    return false;
 }

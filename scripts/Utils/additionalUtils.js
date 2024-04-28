@@ -10,3 +10,11 @@ export async function checkWebsiteExistence (url) {
       return false;
     }
 }
+
+// Helper function to log information on html, for testing purposes
+export function logMessage(message) {
+  const logContainer = document.getElementById('log-container');
+  const logMessage = document.createElement('div');
+  logMessage.textContent = message;
+  logContainer.appendChild(logMessage);
+}

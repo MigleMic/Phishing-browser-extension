@@ -10,9 +10,11 @@ export async function callCollapsible(id) {
 }
 
 function showCollapsible(name, description, urls, sample) {
+    const parentDiv = document.getElementById('phishingReasons');
+
     const div = document.createElement('div');
     div.classList.add('collapsible');
-    document.body.appendChild(div);
+    parentDiv.appendChild(div);
 
     const div2 = document.createElement('div');
     div2.classList.add('collapsible-wrap');

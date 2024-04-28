@@ -49,68 +49,50 @@ async function checkPhishingSigns() {
 
     //TBA add collapsibles and markers inside of this
     if (await checkIPAddress(url)) {
-        logMessage('Rastas IP adresas');
         phishing = true;
     }
     
     if (await checkPlagiarisedLetter()) {
-        logMessage('Rasta plagijuota raidė');
         phishing = true;
     }
 
     if (await checkLongUrl(url)) {
-        logMessage('Rastas ilgas URL');
         phishing = true;
     }
 
     if (await checkUrlShorteners()) {
-        logMessage('Rastas URL trumpintojas');
         phishing = true;
     }
 
     if (await checkCheapTLD(url)) {
-        logMessage('Rastas pigus aukščiausio lygio domenas');
         phishing = true;
     }
 
     if (await checkNativeTLD(url)) {
-        logMessage('Rastas ne šalies aukščiausio lygio domenas');
         phishing = true;
     }
 
     if (await checkTLDNumber(url)) {
-        logMessage('Rastas daugiau nei vienas TLD');
         phishing = true;
     }
 
-    if (await checkAtSymbol()){
-        logMessage('Rastas @ simbolis');
+    if (await checkAtSymbol()) {
         phishing = true;
     }
 
     if (await checkDotsDashes()) {
-        logMessage('Rastas didelis brūkšnelių ir taškų skaičius');
         phishing = true;
     }
 
     if (!await checkSSLCertificate(url)) {
-        logMessage('SSL Sertifikatas nerastas');
         phishing = true;
     }
 
     if (await checkPrefixSufix(url)) {
-        logMessage('Rastas pridėtinis žodis');
         phishing = true;
     }
 
     return phishing;   
-}
-
-function logMessage(message) {
-    const logContainer = document.getElementById('log-container');
-    const logMessage = document.createElement('div');
-    logMessage.textContent = message;
-    logContainer.appendChild(logMessage);
 }
 
 // Highlightening dangerous parts of URL
