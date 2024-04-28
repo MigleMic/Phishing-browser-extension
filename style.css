@@ -18,9 +18,9 @@ body {
 }
 
 .dangerousContent em{
-    margin-left: 10px;
     color: red;
     font-style: normal;
+    margin-left: 10px;
 }
 
 #url-display {
@@ -34,60 +34,61 @@ body {
 }
 
 .message-box {
-    position: absolute;
     background-color: rgba(173, 216, 230, 0.4); 
-    padding-top: 15px;
-    display: none;
-    z-index: 9999;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    height: 20px;
-
     font-size: 12px;
     font-weight: normal;
     font-style: italic;
+    display: none;
+    position: absolute;
+    padding-top: 15px;
+    height: 20px;
+    z-index: 9999;
+    border-radius: 5px;
 }
 
 .close-button {
+    color: black;
+    background: none;
     position: absolute;
     top: 1px;
     right: 3px;
     border: none;
-    background: none;
-    color: black;
     cursor: pointer;
 }
 
 .collapsible {
-    width: calc(50% - 20px);
-    margin-bottom: 10px;
-    margin-right: 20px;
-    border: 1px ;
     display: inline-block;
+    margin-bottom: 10px;
+    margin-right: 5px;
+    width: calc(50% - 20px);
+    border: 1px ;
     vertical-align: top;
+    border-radius: 12px;
 }
 
 .collapsible-btn {
-    background-color: #B9B9B9;
     color: black;
-    cursor: pointer;
+    background-color: #B9B9B9;
+    font-size: 18px;
+    text-align: center;
     padding: 13px;
     width: 100%;
     border: none;
-    text-align: center;
+    cursor: pointer;
     outline: none;
-    font-size: 18px;
+    border-radius: 12px 12px 0 0;
 }
 
 .show, .collapsible-btn:hover {
-    background-color: #7d7d7d;
+    background-color: #999999;
 }
 
 .collapsible-btn:after {
-    content: '\002B';
     color: white;
     font-weight: bold;
     float: right;
+    content: '\002B';
 }
 
 .show:after {
@@ -95,12 +96,14 @@ body {
 }
 
 .collapsible-con {
+    background-color: #D9D9D9;
+    font-size: 16px;
+    margin-bottom: 5px;
     padding: 0 18px;
+    width: 100%;
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s ease-out;
-    background-color: #D9D9D9;
-    width: 100%;
     box-sizing: border-box;
-    font-size: 16px;
+    border-radius: 0 0 12px 12px;
 }

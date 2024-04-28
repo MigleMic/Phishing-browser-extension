@@ -75,7 +75,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         phishing = message.isPhishing;
         console.log(phishing);
         if (phishing) {
-            // openPanelWindow(showUrl);
             console.log('TIKRINAM PHISHING ', phishing);
             // chrome.tabs.update(activeTabId, {url: 'chrome://newtab'});
         }

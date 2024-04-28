@@ -11,13 +11,13 @@ export async function callMarkerMessage(markerID, modifiedUrl, dIndex) {
     updateDataIndex();
 }
 
-export function getMessage(element, dIndex, marker){
+export function getMessage(element, dIndex, marker) {
     const spanElements = element.querySelectorAll('span.dangerousSymbol');
 
     spanElements.forEach(spanElement => {
         const dataIndexElement = parseInt(spanElement.getAttribute('dataIndex'));
 
-        if (dIndex === dataIndexElement){
+        if (dIndex === dataIndexElement) {
             const spanBox = spanElement.getBoundingClientRect();
 
             var x, y;
@@ -34,7 +34,7 @@ export function getMessage(element, dIndex, marker){
     });
 }
 
-function showMessage(x, y, marker){
+function showMessage(x, y, marker) {
     const messageBox = document.createElement('div');
     messageBox.classList.add('message-box');
 
