@@ -11,16 +11,20 @@ function showCollapsible(name, description) {
     const div = document.createElement('div');
     div.classList.add('collapsible');
 
+    const div2 = document.createElement('div');
+    div2.classList.add('collapsible-wrap');
+
     const button = document.createElement('button');
     button.classList.add('collapsible-btn');
     button.textContent = name;
 
-    const div2 = document.createElement('div');
-    div2.classList.add('collapsible-con');
-    div2.textContent = description;
+    const div3 = document.createElement('div');
+    div3.classList.add('collapsible-con');
+    div3.textContent = description;
 
-    div.appendChild(button);
     div.appendChild(div2);
+    div2.appendChild(button);
+    div2.appendChild(div3);
     document.body.appendChild(div);
 
     button.addEventListener('click', function() {

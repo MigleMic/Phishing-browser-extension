@@ -93,7 +93,7 @@ async function checkPhishingSigns() {
         phishing = true;
     }
 
-    if (await checkSSLCertificate(url)) {
+    if (!await checkSSLCertificate(url)) {
         logMessage('SSL Sertifikatas nerastas');
         phishing = true;
     }

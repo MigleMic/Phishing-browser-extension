@@ -9,7 +9,7 @@ export async function checkSSLCertificate() {
 
     var foundValue = false;
 
-    if (modifiedUrl.startsWith(sslCertificate)) {
+    if (!modifiedUrl.startsWith(sslCertificate)) {
         reasons.push('SSL_Certificate');
         await callCollapsible('SSL_Certificate');
         foundValue = true;
