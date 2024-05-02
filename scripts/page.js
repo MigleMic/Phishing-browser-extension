@@ -19,20 +19,17 @@ create_database();
 export let modifiedUrl = '';
 export let dataIndex = 1;
 
-// Displaying the URL of the current active tab
+
 document.addEventListener('DOMContentLoaded', async function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const url = urlParams.get('url');
 
     insertToLoggerTable('', 'Sending URL to background');
-    chrome.runtime.sendMessage({ action: 'getURL', url: url }, async (response) => {
+    chrome.runtime.sendMessage({ action: 'getURL', }, async (response) => {
         insertToLoggerTable('', 'Got a response from background');
-        console.log(url);
         if (response && response.success){
-            const currentUrl = url;
+            const currentUrl = response.url;
             modifiedUrl = currentUrl;
 
-            var isPhishing = await checkPhishingSigns();
+            var isPhishing = await checkPhishingSigns(currentUrl);
             if (isPhishing)
             {
                 document.getElementById('url-display').innerHTML = modifiedUrl;             
@@ -40,12 +37,23 @@ document.addEventListener('DOMContentLoaded', async function () {
             chrome.runtime.sendMessage({ action: 'isPhishing', isPhishing: isPhishing, url : currentUrl}); 
         }
     });
+
+    var safetyButton = document.getElementById('safetyButton');
+    safetyButton.addEventListener('click', function () {
+        chrome.runtime.sendMessage({action: 'safetyButtonClicked'});
+        insertToLoggerTable('', 'User went to safety');
+    });
+    
+    var dangerButton = document.getElementById('dangerButton');
+    dangerButton.addEventListener('click', function() {
+        chrome.runtime.sendMessage({action: 'dangerButtonClicked'});
+        insertToLoggerTable('', 'User went to danger');
+    });
 });
 
 // Checking for defined phishing signs
-async function checkPhishingSigns() {
+async function checkPhishingSigns(url) {
     var phishing = false;
-    var url = modifiedUrl;
 
     //TBA add collapsibles and markers inside of this
     if (await checkIPAddress(url)) {
@@ -84,7 +92,7 @@ async function checkPhishingSigns() {
         phishing = true;
     }
 
-    if (!await checkSSLCertificate(url)) {
+    if (await checkSSLCertificate(url)) {
         phishing = true;
     }
 

@@ -3,14 +3,12 @@
 let previousUrl = '';
 let showUrl = '';
 let panelWindowId = null;
-let activeTabId = null;
 let panelOpen = false;
 
 // Checking if new tab URL is a new URL
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.url && tab.active) {
         const url = changeInfo.url;
-
         if (url !== previousUrl) {
             checkUrl(url);
         }
@@ -39,12 +37,15 @@ function checkUrl(url) {
         }
         if (!panelOpen) {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                activeTabId = tabs[0].id;  
+                var activeTabId = tabs[0].id;  
     
                 if (!url.startsWith(chrome.runtime.getURL("")) && !excludeFromUrlChecking(url)) {
                     if (panelWindowId === null) {
+                        chrome.tabs.update(activeTabId, {url: previousUrl});
                             showUrl = url;
+                            panelOpen = true;
                             openPanelWindow(url);
+                            
                     }
                 }
             });
@@ -65,20 +66,16 @@ function excludeFromUrlChecking(url){
 
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'getURL') {
-        const url = message.url;
-        
-        if (url === showUrl) {
-            sendResponse({ success: true, url: showUrl }); 
-        }
-    } 
 
-    else if (message.action === 'isPhishing') {
+    if (message.action === 'getURL') {
+
+        sendResponse({success: true, url: showUrl});
+    }
+
+    if (message.action === 'isPhishing') {
         phishing = message.isPhishing;
-        console.log(phishing);
         if (phishing) {
             console.log('TIKRINAM PHISHING ', phishing);
-            // chrome.tabs.update(activeTabId, {url: 'chrome://newtab'});
         }
         if (phishing === false) {
             console.log('Norim uzdaryti',  panelWindowId);
@@ -86,6 +83,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         sendResponse({ success: true});
     }  
+
+    if (message.action === 'safetyButtonClicked') {
+        closePanelWindow();
+        chrome.tabs.goBack();
+    }
+
+    if (message.action === 'dangerButtonClicked') {
+        console.log('Pavojus');
+    }
     return true;
 });
 
@@ -103,8 +109,6 @@ function openPanelWindow(url) {
     }, window => {
         panelWindowId = window.id;
     }); 
-
-    panelOpen = true;
 }
 
 chrome.windows.onRemoved.addListener(windowId => {
@@ -119,5 +123,6 @@ function closePanelWindow() {
     if (panelWindowId) {
         chrome.windows.remove(panelWindowId);
         panelWindowId = null;
+        panelOpen = false;
     }
 }
