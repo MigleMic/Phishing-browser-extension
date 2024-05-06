@@ -5,6 +5,7 @@ import { checkWebsiteExistence } from "../Utils/additionalUtils.js";
 import { modifiedUrl, dataIndex, modifyUrlPart, updateUrl } from "../page.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
+import { showTrueURL } from "../panelAdditions/trueURLAddition.js";
 
 export async function checkNativeTLD(url) {
     let nativeTLD = 'lt';
@@ -32,6 +33,8 @@ export async function checkNativeTLD(url) {
                 var url2 = modifyUrlPart(modifiedUrl, index, oldTLD.length, dIndex);
 
                 updateUrl(url2);
+
+                showTrueURL(newUrl, 'Native_TLD');
 
                 reasons.push('Native_TLD');
 

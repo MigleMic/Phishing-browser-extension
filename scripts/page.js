@@ -19,10 +19,9 @@ create_database();
 export let modifiedUrl = '';
 export let dataIndex = 1;
 
-
 document.addEventListener('DOMContentLoaded', async function () {
-
     insertToLoggerTable('', 'Sending URL to background');
+
     chrome.runtime.sendMessage({ action: 'getURL', }, async (response) => {
         insertToLoggerTable('', 'Got a response from background');
         if (response && response.success){
@@ -32,7 +31,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             var isPhishing = await checkPhishingSigns(currentUrl);
             if (isPhishing)
             {
-                document.getElementById('url-display').innerHTML = modifiedUrl;             
+                document.getElementById('url-display').innerHTML = modifiedUrl;        
+                insertToLoggerTable('', 'Phishing found on URL ' + currentUrl);     
             } 
             chrome.runtime.sendMessage({ action: 'isPhishing', isPhishing: isPhishing, url : currentUrl}); 
         }
@@ -84,7 +84,7 @@ async function checkPhishingSigns(url) {
         phishing = true;
     }
 
-    if (await checkAtSymbol()) {
+    if (await checkAtSymbol(url)) {
         phishing = true;
     }
 

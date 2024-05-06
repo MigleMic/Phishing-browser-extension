@@ -5,6 +5,7 @@ import { modifiedUrl, dataIndex, modifyUrlSymbol, updateUrl } from "../page.js";
 import { checkWebsiteExistence } from "../Utils/additionalUtils.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
+import { showTrueURL } from "../panelAdditions/trueURLAddition.js";
 
 export async function checkPlagiarisedLetter() {
     const plagiarisedLetters = [0, 1, 3];
@@ -25,7 +26,9 @@ export async function checkPlagiarisedLetter() {
                     const modify = modifiedUrl.substring(0, index) + replaced + modifiedUrl.substring(index + 1);
                     
                     if (await checkWebsiteExistence(modify)) {
-                        var dIndex = dataIndex;
+                        showTrueURL(modify, 'Plagiarised_Letter');
+                    }
+                    var dIndex = dataIndex;
                         
                         var url  = modifyUrlSymbol(modifiedUrl, index, dIndex);
 
@@ -38,7 +41,6 @@ export async function checkPlagiarisedLetter() {
 
                         foundValue = true;
                         break;
-                    }
                 }
             }
         }

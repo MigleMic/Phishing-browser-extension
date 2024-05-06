@@ -54,7 +54,7 @@ function checkUrl(url) {
 }
 
 function excludeFromUrlChecking(url){
-    const excludeDomains = ['google', 'drive', 'about:blank', 'file', 'localhost', '404'];
+    const excludeDomains = ['drive', 'about:blank', 'file', 'localhost', '404'];
 
     for (const excluded of excludeDomains) {
         if (url.includes(excluded)) {
