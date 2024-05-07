@@ -24,14 +24,12 @@ export async function checkPlagiarisedLetter() {
             const character = modifiedUrl[i];
 
             if (plagiarisedLetters.includes(parseInt(character))) {
-                console.log('Sutampa ', character);
                 for (const replaced of replacePlagiarisedLetter[character]) {
                     const modify = modifiedUrl.substring(0, i) + replaced + modifiedUrl.substring(i + 1);
                     
                     if (await checkWebsiteExistence(modify)) {
                         showTrueURL(modify, 'Plagiarised_Letter');
                     }
-                    console.log('Radom ', i);
                     
                     plagiarisedLettersIndex.push(i);
                     plagiarisedLettersCount++;
@@ -52,8 +50,6 @@ export async function checkPlagiarisedLetter() {
         for (const plagiarised of plagiarisedLettersIndex) {
             var dIndex = dataIndex;
             var url  = modifyUrlSymbol(modifiedUrl, plagiarised + spanTextLength, dIndex);
-
-            console.log('Indeksas ', dataIndex);
 
             updateUrl(url);
 
