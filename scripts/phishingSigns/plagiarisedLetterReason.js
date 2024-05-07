@@ -1,7 +1,7 @@
 // Reason to check if URL has a plagiarised letter
 
 import { reasons } from "./phishingReasonArray.js";
-import { modifiedUrl, dataIndex, modifyUrlSymbol, updateUrl } from "../page.js";
+import { modifiedUrl, dataIndex, modifyUrlSymbol, updateUrl, modifyUrl } from "../page.js";
 import { checkWebsiteExistence } from "../Utils/additionalUtils.js";
 import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
@@ -16,35 +16,55 @@ export async function checkPlagiarisedLetter() {
     };
 
     var foundValue = false;
+    var plagiarisedLettersIndex = [];
+    var plagiarisedLettersCount = 0;  
 
     if (!reasons.includes('IP_Adress')) {
-        for (const character of plagiarisedLetters) {
-            if (modifiedUrl.includes(character)) {
-                var index = modifiedUrl.indexOf(character);
-                
+        for (let i = 0; i < modifiedUrl.length; i++) {
+            const character = modifiedUrl[i];
+
+            if (plagiarisedLetters.includes(parseInt(character))) {
+                console.log('Sutampa ', character);
                 for (const replaced of replacePlagiarisedLetter[character]) {
-                    const modify = modifiedUrl.substring(0, index) + replaced + modifiedUrl.substring(index + 1);
+                    const modify = modifiedUrl.substring(0, i) + replaced + modifiedUrl.substring(i + 1);
                     
                     if (await checkWebsiteExistence(modify)) {
                         showTrueURL(modify, 'Plagiarised_Letter');
                     }
-                    var dIndex = dataIndex;
+                    console.log('Radom ', i);
+                    
+                    plagiarisedLettersIndex.push(i);
+                    plagiarisedLettersCount++;
                         
-                        var url  = modifyUrlSymbol(modifiedUrl, index, dIndex);
-
-                        updateUrl(url);
-
-                        reasons.push('Plagiarised_Letter');
-
-                        await callMarkerMessage('Plagiarised_Letter', modifiedUrl, dIndex);
-                        await callCollapsible('Plagiarised_Letter');
-
-                        foundValue = true;
-                        break;
+                    foundValue = true;
+                    break;
                 }
             }
         }
-    }    
+    }
+
+    if (plagiarisedLettersCount > 0) {
+        var spanTextLength = 0;
+
+        var dangerousSymbolStart = '<span class="dangerousSymbol" dataIndex="1">';
+        var dangerousSymbolEnd = '</span>';
+
+        for (const plagiarised of plagiarisedLettersIndex) {
+            var dIndex = dataIndex;
+            var url  = modifyUrlSymbol(modifiedUrl, plagiarised + spanTextLength, dIndex);
+
+            console.log('Indeksas ', dataIndex);
+
+            updateUrl(url);
+
+            spanTextLength += dangerousSymbolStart.length + dangerousSymbolEnd.length;
+
+            await callMarkerMessage('Plagiarised_Letter', modifiedUrl, dIndex);
+        }
+
+        reasons.push('Plagiarised_Letter');
+        await callCollapsible('Plagiarised_Letter');
+    }
 
     return foundValue;
 }
