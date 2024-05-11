@@ -55,7 +55,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 async function checkPhishingSigns(url) {
     var phishing = false;
 
-    //TBA add collapsibles and markers inside of this
+    if (await checkAtSymbol(url)) {
+        phishing = true;
+    }
+
     if (await checkIPAddress(url)) {
         phishing = true;
     }
@@ -81,10 +84,6 @@ async function checkPhishingSigns(url) {
     }
 
     if (await checkTLDNumber(url)) {
-        phishing = true;
-    }
-
-    if (await checkAtSymbol(url)) {
         phishing = true;
     }
 

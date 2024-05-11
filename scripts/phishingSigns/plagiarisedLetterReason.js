@@ -23,11 +23,21 @@ export async function checkPlagiarisedLetter() {
         for (let i = 0; i < modifiedUrl.length; i++) {
             const character = modifiedUrl[i];
 
+            if (character === '<' && modifiedUrl.substring(i).startsWith('<span')) {
+                const spanEndIndex = modifiedUrl.indexOf('>', i);
+                i = spanEndIndex;
+
+                while (modifiedUrl[i] !== '<') {
+                    i++;
+                }
+                continue;
+            }
+
             if (plagiarisedLetters.includes(parseInt(character))) {
                 for (const replaced of replacePlagiarisedLetter[character]) {
                     const modify = modifiedUrl.substring(0, i) + replaced + modifiedUrl.substring(i + 1);
                     
-                    if (await checkWebsiteExistence(modify)) {
+                    if (await checkWebsiteExistence(modify) && !reasons.includes('At_Sign')) {
                         showTrueURL(modify, 'Plagiarised_Letter');
                     }
                     

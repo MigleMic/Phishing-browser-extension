@@ -29,6 +29,6 @@ export async function checkAtSymbol(url) {
         reasons.push('At_Sign');
         foundValue = true;
     }
-
+    console.log(modifiedUrl);
     return foundValue;
 }

@@ -60,8 +60,27 @@ function showCollapsible(name, description, urls, sample) {
         var content = this.nextElementSibling;
         if (content.style.maxHeight) {
             content.style.maxHeight = null;
+            moveOtherButtons();
         } else {
             content.style.maxHeight = content.scrollHeight + 'px';
+            moveOtherButtons();
         }
     });
+}
+
+function moveOtherButtons() {
+    var reasonsContainer = document.getElementById('reasons');
+    var buttonContainer = document.getElementById('buttons');
+    
+    var buttonsRect = buttonContainer.getBoundingClientRect();
+    var reasonsRect = reasonsContainer.getBoundingClientRect();
+
+    if (reasonsRect.bottom > buttonsRect.top) {
+        var overlapDistance = reasonsRect.bottom - buttonsRect.top;
+        var current = parseFloat(buttonContainer.style.transform.replace('translateY(', '').replace('px)', '')) || 0;
+        var newOffset = current + overlapDistance;
+        buttonContainer.style.transform = 'translateY(' + newOffset + 'px)';
+    } else {
+        buttonContainer.style.transform = 'translateY(0)';
+    }
 }

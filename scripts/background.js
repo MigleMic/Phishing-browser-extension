@@ -75,12 +75,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'isPhishing') {
         phishing = message.isPhishing;
         if (phishing) {
-            console.log('TIKRINAM PHISHING ', phishing);
-            
             chrome.tabs.update(activeTabId, {url: 'warning_page.html'});
         }
         if (phishing === false) {
-            console.log('Norim uzdaryti',  panelWindowId);
             closePanelWindow();
         }
         sendResponse({ success: true});
@@ -88,20 +85,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message.action === 'safetyButtonClicked') {
         closePanelWindow();
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            var currentWindowId = tabs[0].id;
-
-            chrome.tabs.goBack(currentWindowId);
-        });
+        chrome.tabs.goBack(activeTabId);
     }
 
     if (message.action === 'dangerButtonClicked') {
         closePanelWindow();
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            var currentWindowId = tabs[0].id;
-
-            chrome.tabs.update(currentWindowId, {url: showUrl});
-        });
+        chrome.tabs.update(activeTabId, {url: showUrl});
     }
     return true;
 });
@@ -115,7 +104,7 @@ function openPanelWindow(url) {
         type: 'panel',
         left: 300,
         top: 10,
-        width: 850,
+        width: 900,
         height: 800
     }, window => {
         panelWindowId = window.id;
