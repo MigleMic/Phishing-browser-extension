@@ -8,3 +8,4 @@ Naršyklės plėtinio paleidimas:
 - Atsidaryti „Google Chrome" naršyklę.
 - Paspausti ant „Plėtiniai" ir tuomet „Tvarkyti plėtinius" arba „Nustatymai" ir tada „Plėtiniai", jei nematote plėtinio ženkliuko.
 - Įjungti „Kūrėjo režimą", paspausti „Įkelti neišpakuotą. Suraskite išarchyvuotą PhishingExtension failą ir įkelkite. Įkėlus sėkmingai, turėtumėte matyti naršyklės plėtinį sąraše.
+- Jei turite ad blocker, išjunkite, nes gali neiššokti naršyklės plėtinio langas.
