@@ -5,6 +5,7 @@ let showUrl = '';
 let panelWindowId = null;
 let panelOpen = false;
 let activeTabId = null;
+let currentId = '';
 
 // Checking if new tab URL is a new URL
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -38,7 +39,9 @@ function checkUrl(url) {
         }
         if (!panelOpen) {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                activeTabId = tabs[0].id;  
+                if (tabs && tabs.length > 0 && tabs[0].id) {
+                    activeTabId = tabs[0].id;
+                } 
     
                 if (!url.startsWith(chrome.runtime.getURL("")) && !excludeFromUrlChecking(url)) {
                     if (panelWindowId === null) {
@@ -76,6 +79,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         phishing = message.isPhishing;
         if (phishing) {
             chrome.tabs.update(activeTabId, {url: 'warning_page.html'});
+            currentId = activeTabId;
         }
         if (phishing === false) {
             closePanelWindow();
@@ -85,12 +89,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message.action === 'safetyButtonClicked') {
         closePanelWindow();
-        chrome.tabs.goBack(activeTabId);
+        chrome.tabs.goBack(currentId);
     }
 
     if (message.action === 'dangerButtonClicked') {
         closePanelWindow();
-        chrome.tabs.update(activeTabId, {url: showUrl});
+        chrome.tabs.update(currentId, {url: showUrl});
     }
     return true;
 });
