@@ -8,20 +8,22 @@ import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js
 export async function checkTLDNumber(url) {
     var foundValue = false;
 
-    const ignorePatterns = [/^https?:\/\//, /^www\./];
-
+    const ignorePatterns = /^(https?:\/\/www\.|https\/\/www\.|https?:\/\/|http:\/\/|www\.)/;
     let splitUrl = url;
-    ignorePatterns.forEach(pattern => {
-        splitUrl = splitUrl.replace(pattern, '');
-    });
+
+    splitUrl = splitUrl.replace(ignorePatterns, '');
 
     splitUrl = splitUrl.split('/')[0];
 
     const urlObject = new URL(url);
 
-    const hostname = urlObject.hostname;
+    let hostname = urlObject.hostname;
 
-    const splitHostname = hostname.split('.');
+    if (hostname.startsWith('www')) {
+        hostname = hostname.substring(4);
+    }
+
+    let splitHostname = hostname.split('.');
     
     // No TLD found
     if (splitHostname.length <= 1) {

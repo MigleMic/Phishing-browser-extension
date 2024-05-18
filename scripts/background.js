@@ -90,11 +90,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'safetyButtonClicked') {
         closePanelWindow();
         chrome.tabs.goBack(currentId);
+        sendResponse({ success: true});
     }
 
     if (message.action === 'dangerButtonClicked') {
         closePanelWindow();
-        chrome.tabs.update(currentId, {url: showUrl});
+        let gottenUrl = message.url;
+        setTimeout(() => {
+            chrome.tabs.update(currentId, {url: gottenUrl}, () => {
+                sendResponse({success: true});
+            });
+        }, 100);
+        // chrome.tabs.update(currentId, {url: gottenUrl});
+        console.log('Gautas ', message.url);
+        console.log('Show - ', showUrl);
+        console.log('Praeitas - ', previousUrl);
+        // sendResponse({ success: true});
     }
     return true;
 });
@@ -123,7 +134,6 @@ chrome.windows.onRemoved.addListener(windowId => {
 });
 
 function closePanelWindow() {
-    console.log(panelWindowId);
     if (panelWindowId) {
         chrome.windows.remove(panelWindowId);
         panelWindowId = null;

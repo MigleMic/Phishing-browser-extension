@@ -19,13 +19,15 @@ create_database();
 export let modifiedUrl = '';
 export let dataIndex = 1;
 
+export let currentUrl = '';
+
 document.addEventListener('DOMContentLoaded', async function () {
     insertToLoggerTable('', 'Sending URL to background');
 
     chrome.runtime.sendMessage({ action: 'getURL', }, async (response) => {
         insertToLoggerTable('', 'Got a response from background');
         if (response && response.success){
-            const currentUrl = response.url;
+            currentUrl = response.url;
             modifiedUrl = currentUrl;
 
             var isPhishing = await checkPhishingSigns(currentUrl);
@@ -46,7 +48,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     
     var dangerButton = document.getElementById('dangerButton');
     dangerButton.addEventListener('click', function() {
-        chrome.runtime.sendMessage({action: 'dangerButtonClicked'});
+        chrome.runtime.sendMessage({action: 'dangerButtonClicked', url : currentUrl});
+        console.log(currentUrl);
         insertToLoggerTable('', 'User went to danger');
     });
 });
