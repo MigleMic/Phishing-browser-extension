@@ -39,19 +39,31 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
    });
 
-   var safetyButton = document.getElementById('safetyButton');
+   attachButtons();
+});
+
+document.addEventListener('visibilitychange', function() {
+   if (document.visibilityState === 'visible') {
+      attachButtons();
+   }
+});
+
+function attachButtons()
+ {
+   const safetyButton = document.getElementById('safetyButton');
+   const dangerButton = document.getElementById('dangerButton');
+
    safetyButton.addEventListener('click', function () {
       chrome.runtime.sendMessage({ action: 'safetyButtonClicked' });
       insertToLoggerTable('', 'User went to safety');
    });
 
-   var dangerButton = document.getElementById('dangerButton');
+   
    dangerButton.addEventListener('click', function () {
       chrome.runtime.sendMessage({ action: 'dangerButtonClicked', url: currentUrl });
       insertToLoggerTable('', 'User went to danger');
    });
-});
-
+ }
 // Checking for defined phishing signs
 async function checkPhishingSigns(url) {
    var phishing = false;

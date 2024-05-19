@@ -34,13 +34,15 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
 // Checking if URL is not of extension itself
 function checkUrl(url) {
    if (!url.startsWith('chrome') && !url.startsWith('about:blank')) {
-      if (url !== previousUrl) {
-         previousUrl = url;
-         if (!panelOpen) {
+      if (!panelOpen) {
+         if (url !== previousUrl) {
+            previousUrl = url;
+            
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                if (tabs && tabs.length > 0 && tabs[0].id) {
                   activeTabId = tabs[0].id;
                }
+               
                if (!url.startsWith(chrome.runtime.getURL("")) && !excludeFromUrlChecking(url)) {
                   if (panelWindowId === null) {
                      chrome.tabs.update(activeTabId, { url: previousUrl });
@@ -70,7 +72,6 @@ function excludeFromUrlChecking(url) {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
    if (message.action === 'getURL') {
-
       sendResponse({ success: true, url: showUrl });
    }
 
@@ -93,9 +94,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
    }
 
    if (message.action === 'dangerButtonClicked') {
-      closePanelWindow();
       let gottenUrl = message.url;
-      chrome.tabs.update(currentId, { url: gottenUrl }, () => {
+
+      closePanelWindow();
+
+      chrome.tabs.update(currentId, { url: gottenUrl }, (tab) => {
          sendResponse({ success: true });
       });
    }
