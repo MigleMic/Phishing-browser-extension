@@ -114,7 +114,7 @@ function openPanelWindow(url) {
       type: 'panel',
       left: 300,
       top: 10,
-      width: 900,
+      width: 1000,
       height: 800
    }, window => {
       panelWindowId = window.id;

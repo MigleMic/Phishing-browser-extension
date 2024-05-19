@@ -1,6 +1,8 @@
 import { getMarkerByID } from "../Utils/getDatabseInformation.js";
 import { updateDataIndex } from "../page.js";
 
+let updateMessageBoxPosition;
+
 export async function callMarkerMessage(markerID, modifiedUrl, dIndex) {
    document.getElementById('url-display').innerHTML = modifiedUrl;
 
@@ -11,14 +13,14 @@ export async function callMarkerMessage(markerID, modifiedUrl, dIndex) {
    updateDataIndex();
 }
 
-export function getMessage(element, dIndex, marker) {
+function getMessage(element, dIndex, marker) {
    const spanElements = element.querySelectorAll('span.dangerousSymbol');
 
    spanElements.forEach(spanElement => {
       const dataIndexElement = parseInt(spanElement.getAttribute('dataIndex'));
 
       if (dIndex === dataIndexElement) {
-         const updateMessageBoxPosition = () => {
+         updateMessageBoxPosition = () => {
             const spanBox = spanElement.getBoundingClientRect();
 
             var x, y;
