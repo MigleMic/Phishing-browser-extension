@@ -7,28 +7,28 @@ import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js
 import { showTrueURL } from "../panelAdditions/trueURLAddition.js";
 
 export async function checkAtSymbol(url) {
-    const atSymbol = '@';
+   const atSymbol = '@';
 
-    var foundValue = false;
+   var foundValue = false;
 
-    if (modifiedUrl.includes(atSymbol)) {
-        var index = modifiedUrl.indexOf(atSymbol);
-        var dIndex = dataIndex;
-        
-        var url2 = modifyUrlSymbol(modifiedUrl, index, dIndex);
+   if (modifiedUrl.includes(atSymbol)) {
+      var index = modifiedUrl.indexOf(atSymbol);
+      var dIndex = dataIndex;
 
-        updateUrl(url2);
+      var url2 = modifyUrlSymbol(modifiedUrl, index, dIndex);
 
-        var splitUrl = 'https://' + url.split('@')[1];
+      updateUrl(url2);
 
-        showTrueURL(splitUrl, 'At_Sign');
+      var splitUrl = 'https://' + url.split('@')[1];
 
-        await callMarkerMessage('At_Sign', modifiedUrl, dIndex);
-        await callCollapsible('At_Sign');
-        
-        reasons.push('At_Sign');
-        foundValue = true;
-    }
-    console.log(modifiedUrl);
-    return foundValue;
+      showTrueURL(splitUrl, 'At_Sign');
+
+      await callMarkerMessage('At_Sign', modifiedUrl, dIndex);
+      await callCollapsible('At_Sign');
+
+      reasons.push('At_Sign');
+      foundValue = true;
+   }
+
+   return foundValue;
 }

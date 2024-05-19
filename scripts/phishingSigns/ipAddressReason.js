@@ -6,50 +6,51 @@ import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js";
 
 export async function checkIPAddress(url) {
-    var foundValue = false;
-    // Regex for IPv4
-    const ipv4Regex = /\b(?:\d{1,3}\.){3}\d{1,3}\b/;
-    
-    // Regex for IPv6
-    const ipv6Regex = /(?:^|\s)(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}(?:$|\s)/i;
+   var foundValue = false;
 
-    const ipv4Match = url.match(ipv4Regex);
-    if (ipv4Match) {
-        var index = modifiedUrl.indexOf(ipv4Match[0]);
-        var length = index + ipv4Match.length;
-        var dIndex = dataIndex;
+   // Regex for IPv4
+   const ipv4Regex = /\b(?:\d{1,3}\.){3}\d{1,3}\b/;
 
-        var url = modifyUrlPart(modifiedUrl, index, length, dIndex);
+   // Regex for IPv6
+   const ipv6Regex = /(?:^|\s)(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}(?:$|\s)/i;
 
-        updateUrl(url);
+   const ipv4Match = url.match(ipv4Regex);
+   if (ipv4Match) {
+      var index = modifiedUrl.indexOf(ipv4Match[0]);
+      var length = index + ipv4Match.length;
+      var dIndex = dataIndex;
 
-        reasons.push('IP_Address');
+      var url = modifyUrlPart(modifiedUrl, index, length, dIndex);
 
-        await callMarkerMessage('IP_Address', modifiedUrl, dIndex);
-        
-        foundValue = true;
-    }
+      updateUrl(url);
 
-    const ipv6Match = modifiedUrl.match(ipv6Regex);
-    if (ipv6Match) {
-        var index = modifiedUrl.indexOf(ipv6Match[0]);
-        var length = index + ipv6Match.length;
-        var dIndex = dataIndex;
+      reasons.push('IP_Address');
 
-        var url = modifyUrlPart(modifiedUrl, index, length, dIndex);
+      await callMarkerMessage('IP_Address', modifiedUrl, dIndex);
 
-        updateUrl(url);
+      foundValue = true;
+   }
 
-        reasons.push('IP_Address');
+   const ipv6Match = modifiedUrl.match(ipv6Regex);
+   if (ipv6Match) {
+      var index = modifiedUrl.indexOf(ipv6Match[0]);
+      var length = index + ipv6Match.length;
+      var dIndex = dataIndex;
 
-        await callMarkerMessage('IP_Address', modifiedUrl, dIndex);
+      var url = modifyUrlPart(modifiedUrl, index, length, dIndex);
 
-        foundValue = true;
-    }
+      updateUrl(url);
 
-    if (foundValue) {
-        await callCollapsible('IP_Address');
-    }
+      reasons.push('IP_Address');
 
-    return foundValue;
+      await callMarkerMessage('IP_Address', modifiedUrl, dIndex);
+
+      foundValue = true;
+   }
+
+   if (foundValue) {
+      await callCollapsible('IP_Address');
+   }
+
+   return foundValue;
 }

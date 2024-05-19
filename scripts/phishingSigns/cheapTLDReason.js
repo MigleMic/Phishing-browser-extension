@@ -6,32 +6,32 @@ import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js
 import { reasons } from "./phishingReasonArray.js";
 
 export async function checkCheapTLD(url) {
-    const cheapTLDs = ['xyz', 'info', 'cf', 'gq', 'ml', 'tk', 'ga'];
-    var foundValue = false;
+   const cheapTLDs = ['xyz', 'info', 'cf', 'gq', 'ml', 'tk', 'ga'];
+   var foundValue = false;
 
-    const urlObject = new URL(url);
-    const hostname = urlObject.hostname;
-    const splitHostname = hostname.split('.');
-    const tld  = splitHostname.pop().toString();
+   const urlObject = new URL(url);
+   const hostname = urlObject.hostname;
+   const splitHostname = hostname.split('.');
+   const tld = splitHostname.pop().toString();
 
-    for (const cheap of cheapTLDs) {
-        if (tld === cheap) {
-            var index = modifiedUrl.indexOf(cheap);
-            var dIndex = dataIndex;
+   for (const cheap of cheapTLDs) {
+      if (tld === cheap) {
+         var index = modifiedUrl.indexOf(cheap);
+         var dIndex = dataIndex;
 
-            var url2 = modifyUrlPart(modifiedUrl, index, tld.length, dIndex);
+         var url2 = modifyUrlPart(modifiedUrl, index, tld.length, dIndex);
 
-            updateUrl(url2);
+         updateUrl(url2);
 
-            reasons.push('Cheap_TLD');
+         reasons.push('Cheap_TLD');
 
-            await callMarkerMessage('Cheap_TLD', modifiedUrl, dIndex);
-            await callCollapsible('Cheap_TLD');
-            
-            foundValue = true;
-            break;
-        }
-    }
+         await callMarkerMessage('Cheap_TLD', modifiedUrl, dIndex);
+         await callCollapsible('Cheap_TLD');
 
-    return foundValue;
+         foundValue = true;
+         break;
+      }
+   }
+
+   return foundValue;
 }

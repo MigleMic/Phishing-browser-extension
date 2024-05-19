@@ -22,112 +22,110 @@ export let dataIndex = 1;
 export let currentUrl = '';
 
 document.addEventListener('DOMContentLoaded', async function () {
-    insertToLoggerTable('', 'Sending URL to background');
+   insertToLoggerTable('', 'Sending URL to background');
 
-    chrome.runtime.sendMessage({ action: 'getURL', }, async (response) => {
-        insertToLoggerTable('', 'Got a response from background');
-        if (response && response.success){
-            currentUrl = response.url;
-            modifiedUrl = currentUrl;
+   chrome.runtime.sendMessage({ action: 'getURL', }, async (response) => {
+      insertToLoggerTable('', 'Got a response from background');
+      if (response && response.success) {
+         currentUrl = response.url;
+         modifiedUrl = currentUrl;
 
-            var isPhishing = await checkPhishingSigns(currentUrl);
-            if (isPhishing)
-            {
-                document.getElementById('url-display').innerHTML = modifiedUrl;        
-                insertToLoggerTable('', 'Phishing found on URL ' + currentUrl);     
-            } 
-            chrome.runtime.sendMessage({ action: 'isPhishing', isPhishing: isPhishing, url : currentUrl}); 
-        }
-    });
+         var isPhishing = await checkPhishingSigns(currentUrl);
+         if (isPhishing) {
+            document.getElementById('url-display').innerHTML = modifiedUrl;
+            insertToLoggerTable('', 'Phishing found on URL ' + currentUrl);
+         }
+         chrome.runtime.sendMessage({ action: 'isPhishing', isPhishing: isPhishing, url: currentUrl });
+      }
+   });
 
-    var safetyButton = document.getElementById('safetyButton');
-    safetyButton.addEventListener('click', function () {
-        chrome.runtime.sendMessage({action: 'safetyButtonClicked'});
-        insertToLoggerTable('', 'User went to safety');
-    });
-    
-    var dangerButton = document.getElementById('dangerButton');
-    dangerButton.addEventListener('click', function() {
-        chrome.runtime.sendMessage({action: 'dangerButtonClicked', url : currentUrl});
-        console.log(currentUrl);
-        insertToLoggerTable('', 'User went to danger');
-    });
+   var safetyButton = document.getElementById('safetyButton');
+   safetyButton.addEventListener('click', function () {
+      chrome.runtime.sendMessage({ action: 'safetyButtonClicked' });
+      insertToLoggerTable('', 'User went to safety');
+   });
+
+   var dangerButton = document.getElementById('dangerButton');
+   dangerButton.addEventListener('click', function () {
+      chrome.runtime.sendMessage({ action: 'dangerButtonClicked', url: currentUrl });
+      insertToLoggerTable('', 'User went to danger');
+   });
 });
 
 // Checking for defined phishing signs
 async function checkPhishingSigns(url) {
-    var phishing = false;
+   var phishing = false;
 
-    if (await checkAtSymbol(url)) {
-        phishing = true;
-    }
+   if (await checkAtSymbol(url)) {
+      phishing = true;
+   }
 
-    if (await checkIPAddress(url)) {
-        phishing = true;
-    }
-    
-    if (await checkPlagiarisedLetter()) {
-        phishing = true;
-    }
+   if (await checkIPAddress(url)) {
+      phishing = true;
+   }
 
-    if (await checkLongUrl(url)) {
-        phishing = true;
-    }
+   if (await checkPlagiarisedLetter()) {
+      phishing = true;
+   }
 
-    if (await checkUrlShorteners()) {
-        phishing = true;
-    }
+   if (await checkLongUrl(url)) {
+      phishing = true;
+   }
 
-    if (await checkCheapTLD(url)) {
-        phishing = true;
-    }
+   if (await checkUrlShorteners()) {
+      phishing = true;
+   }
 
-    if (await checkNativeTLD(url)) {
-        phishing = true;
-    }
+   if (await checkCheapTLD(url)) {
+      phishing = true;
+   }
 
-    if (await checkTLDNumber(url)) {
-        phishing = true;
-    }
+   if (await checkNativeTLD(url)) {
+      phishing = true;
+   }
 
-    if (await checkDotsDashes()) {
-        phishing = true;
-    }
+   if (await checkTLDNumber(url)) {
+      phishing = true;
+   }
 
-    if (await checkSSLCertificate(url)) {
-        phishing = true;
-    }
+   if (await checkDotsDashes()) {
+      phishing = true;
+   }
 
-    if (await checkPrefixSufix(url)) {
-        phishing = true;
-    }
+   if (await checkSSLCertificate(url)) {
+      phishing = true;
+   }
 
-    return phishing;   
+   if (await checkPrefixSufix(url)) {
+      phishing = true;
+   }
+
+   return phishing;
 }
 
 // Highlightening dangerous parts of URL
 export function modifyUrlPart(url, index, length, dIndex) {
-    const span = `<span class="dangerousSymbol" dataIndex="${dIndex}">`;
-    return url.substring(0, index) +  span + url.substring(index, index + length) + '</span>' + url.substring(index + length);
+   const span = `<span class="dangerousSymbol" dataIndex="${dIndex}">`;
+   return url.substring(0, index) + span + url.substring(index, index + length) + '</span>' + url.substring(index + length);
 }
 
 
 // Highlightening dangerous symbol of URL
-export function modifyUrlSymbol(url, index, dIndex){
-    const span = `<span class="dangerousSymbol" dataIndex="${dIndex}">`;
-    return url.substring(0, index) + span + url.charAt(index) + '</span>' + url.substring(index + 1);
+export function modifyUrlSymbol(url, index, dIndex) {
+   const span = `<span class="dangerousSymbol" dataIndex="${dIndex}">`;
+   return url.substring(0, index) + span + url.charAt(index) + '</span>' + url.substring(index + 1);
 }
 
 export function updateUrl(url) {
-    modifiedUrl = url;
+   modifiedUrl = url;
 }
 
 export function updateDataIndex() {
-    dataIndex++;
+   dataIndex++;
 }
 
 export function modifyUrl(url) {
-    document.getElementById('url-display').innerHTML = url;
+   document.getElementById('url-display').innerHTML = url;
 
-    updateDataIndex();
+   updateDataIndex();
 }

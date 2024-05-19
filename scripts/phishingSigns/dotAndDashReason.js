@@ -4,68 +4,68 @@ import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js
 import { reasons } from "./phishingReasonArray.js";
 
 export async function checkDotsDashes() {
-    var foundValue = false;
+   var foundValue = false;
 
-    let dashCount = 0;
-    let dotCount = 0;
+   let dashCount = 0;
+   let dotCount = 0;
 
-    var dashIndexes = [];
-    var dotIndexes = [];
+   var dashIndexes = [];
+   var dotIndexes = [];
 
-    for (let i = 0; i < modifiedUrl.length; i++) {
-        if (modifiedUrl[i] === '-') {
-            dashCount++;
-            dashIndexes.push(i);
-        }
-        if (modifiedUrl[i] === '.') {
-            dotCount++;
-            dotIndexes.push(i);
-        
-        }
-    } 
+   for (let i = 0; i < modifiedUrl.length; i++) {
+      if (modifiedUrl[i] === '-') {
+         dashCount++;
+         dashIndexes.push(i);
+      }
+      if (modifiedUrl[i] === '.') {
+         dotCount++;
+         dotIndexes.push(i);
 
-    var dangerousSymbolStart = '<span class="dangerousSymbol" dataIndex="1">';
-    var dangerousSymbolEnd = '</span>';
+      }
+   }
 
-    if (dashCount > 3) {
-        foundValue = true;
-        var count = 0;
+   var dangerousSymbolStart = '<span class="dangerousSymbol" dataIndex="1">';
+   var dangerousSymbolEnd = '</span>';
 
-        for (const dash of dashIndexes) {
-            var dIndex = dataIndex;
-            
-            var url2 = modifyUrlSymbol(modifiedUrl, dash + count, dIndex);
+   if (dashCount > 3) {
+      foundValue = true;
+      var count = 0;
 
-            updateUrl(url2);
+      for (const dash of dashIndexes) {
+         var dIndex = dataIndex;
 
-            count += dangerousSymbolStart.length + dangerousSymbolEnd.length;
+         var url2 = modifyUrlSymbol(modifiedUrl, dash + count, dIndex);
 
-            modifyUrl(url2);
-        }
-        reasons.push('Dot_Dash');
-    }
+         updateUrl(url2);
 
-    if (dotCount > 4) {
-        foundValue = true;
-        var count = 0;
+         count += dangerousSymbolStart.length + dangerousSymbolEnd.length;
 
-        for (const dot of dotIndexes) {
-            var dIndex = dataIndex;
+         modifyUrl(url2);
+      }
+      reasons.push('Dot_Dash');
+   }
 
-            var url2 = modifyUrlSymbol(modifiedUrl, dot + count, dIndex);
+   if (dotCount > 4) {
+      foundValue = true;
+      var count = 0;
 
-            updateUrl(url2); 
+      for (const dot of dotIndexes) {
+         var dIndex = dataIndex;
 
-            count += dangerousSymbolStart.length + dangerousSymbolEnd.length;
+         var url2 = modifyUrlSymbol(modifiedUrl, dot + count, dIndex);
 
-            modifyUrl(url2);
-        }
-        reasons.push('Dot_Dash');
-    }
+         updateUrl(url2);
 
-    if (foundValue) {
-        await callCollapsible('Dot_Dash');
-    }
+         count += dangerousSymbolStart.length + dangerousSymbolEnd.length;
 
-    return foundValue;
+         modifyUrl(url2);
+      }
+      reasons.push('Dot_Dash');
+   }
+
+   if (foundValue) {
+      await callCollapsible('Dot_Dash');
+   }
+
+   return foundValue;
 }

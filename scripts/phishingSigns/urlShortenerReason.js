@@ -7,27 +7,27 @@ import { callCollapsible } from "../panelAdditions/collapsibleContentAddition.js
 
 
 export async function checkUrlShorteners() {
-    const urlShorteners = ['tinyurl.com', 'qrco.de', 'shorturl.at', 'bit.ly'];
-    var foundValue = false;
-    
-    for (const shortener of urlShorteners) {
-        if (modifiedUrl.includes(shortener)) {
-            var index = modifiedUrl.indexOf(shortener);
-            var dIndex = dataIndex;
+   const urlShorteners = ['tinyurl.com', 'qrco.de', 'shorturl.at', 'bit.ly'];
+   var foundValue = false;
 
-            var url = modifyUrlPart(modifiedUrl, index, shortener.length, dIndex);
+   for (const shortener of urlShorteners) {
+      if (modifiedUrl.includes(shortener)) {
+         var index = modifiedUrl.indexOf(shortener);
+         var dIndex = dataIndex;
 
-            updateUrl(url);
+         var url = modifyUrlPart(modifiedUrl, index, shortener.length, dIndex);
 
-            reasons.push('URL_Shortener');
+         updateUrl(url);
 
-            await callMarkerMessage('URL_Shortener', modifiedUrl, dIndex);
-            await callCollapsible('URL_Shortener');
+         reasons.push('URL_Shortener');
 
-            foundValue = true;
-            break;
-        }
-    }
+         await callMarkerMessage('URL_Shortener', modifiedUrl, dIndex);
+         await callCollapsible('URL_Shortener');
 
-    return foundValue;
+         foundValue = true;
+         break;
+      }
+   }
+
+   return foundValue;
 }

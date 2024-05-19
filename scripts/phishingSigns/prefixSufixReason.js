@@ -6,28 +6,28 @@ import { callMarkerMessage } from "../panelAdditions/markerMessageAddition.js";
 import { reasons } from "./phishingReasonArray.js";
 
 export async function checkPrefixSufix(url) {
-    const words = ['saugus', 'patvirtinimas', 'nemokamas', 'ispardavimas', 'parama', 'mokestis'];
+   const words = ['saugus', 'patvirtinimas', 'nemokamas', 'ispardavimas', 'parama', 'mokestis'];
 
-    var foundValue = false;
+   var foundValue = false;
 
-    for (const word of words) {
-        if(url.includes(word)) {
-            var index = modifiedUrl.indexOf(word);
-            var dIndex = dataIndex;
+   for (const word of words) {
+      if (url.includes(word)) {
+         var index = modifiedUrl.indexOf(word);
+         var dIndex = dataIndex;
 
-            var url2 = modifyUrlPart(modifiedUrl, index, word.length, dIndex);
+         var url2 = modifyUrlPart(modifiedUrl, index, word.length, dIndex);
 
-            updateUrl(url2);
+         updateUrl(url2);
 
-            await callMarkerMessage('Suffix_Prefix', modifiedUrl, dIndex);
-            await callCollapsible('Suffix_Prefix');
-            
-            reasons.push('Suffix_Prefix');
-            
-            foundValue = true;
-            break;
-        }
-    }
-    
-    return foundValue;
+         await callMarkerMessage('Suffix_Prefix', modifiedUrl, dIndex);
+         await callCollapsible('Suffix_Prefix');
+
+         reasons.push('Suffix_Prefix');
+
+         foundValue = true;
+         break;
+      }
+   }
+
+   return foundValue;
 }
